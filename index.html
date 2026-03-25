@@ -1,0 +1,2578 @@
+<!DOCTYPE html>
+<!-- Official production entry. Canary / BETA: frAnk_app_v20.html -->
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="description" content="frAnk — Austin spots, live events, and lists. The better list."/>
+<title>frAnk · the better list · Austin</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,800;1,400;1,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-family:'Barlow Condensed',sans-serif;color:#1a1a0f;display:flex;flex-direction:column;}
+:root{--cream:#f5f0e8;--cream-dark:#ede6d6;--forest:#1c3a2a;--forest-mid:#2d5a40;--lime:#b8e832;--lime-dark:#9acc1a;--ink:#1a1a0f;--ink-mid:#3a3a2a;--ink-light:#6a6a5a;--ink-ghost:#a8a898;--app-pad:clamp(8px, 2.2vw, 28px);}
+.beta-status-bar{flex-shrink:0;}
+/* Main shell: nav + content share one viewport - no more 100vh app + nav off-screen */
+.app-shell{flex:1;min-height:0;display:flex;flex-direction:column;width:100%;max-width:min(100%,1180px);margin:0 auto;padding-left:max(var(--app-pad), env(safe-area-inset-left, 0px));padding-right:max(var(--app-pad), env(safe-area-inset-right, 0px));box-sizing:border-box;}
+#app{display:flex;flex-direction:column;flex:1;min-height:0;overflow:hidden;position:relative;width:100%;max-width:100%;}
+.screen{display:none;flex:1;flex-direction:column;overflow:hidden;min-height:0;}
+.screen.active{display:flex;position:relative;}
+
+/* HEADER */
+.frank-header{padding:8px 0 8px;border-bottom:1.5px solid var(--forest);display:flex;align-items:center;justify-content:space-between;background:var(--cream);flex-shrink:0;width:100%;position:relative;z-index:2;}
+.header-beta-chip{background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:7px;font-weight:800;padding:3px 6px;border-radius:3px;letter-spacing:0.06em;line-height:1;flex-shrink:0;}
+.header-profile-btn{background:transparent;border:none;cursor:pointer;padding:0;}
+.frank-logo{font-weight:800;font-size:clamp(30px, 3.6vw, 44px);letter-spacing:-0.02em;color:var(--forest);line-height:1;}
+.frank-logo span{color:var(--lime);}
+.frank-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);letter-spacing:0.05em;margin-top:1px;}
+
+/* BETA BAR */
+.beta-status-bar{background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:7px;font-weight:800;text-align:center;padding:2px 6px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--forest);position:relative;z-index:1;flex-shrink:0;}
+
+/* QUOTE BAR - bigger, bolder */
+#quote-bar{background:var(--forest);border-bottom:3px solid var(--lime);padding:12px 14px 14px;flex-shrink:0;width:100%;box-sizing:border-box;}
+#q-text{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:24px;line-height:1.2;color:var(--cream);text-transform:uppercase;letter-spacing:-0.01em;padding-bottom:2px;}
+#q-attr{font-family:'DM Mono',monospace;font-size:9px;color:var(--lime);margin-top:10px;letter-spacing:0.06em;line-height:1.45;}
+
+/* CATEGORY BAR - uniform grid, larger tap targets */
+.cat-bar{background:var(--cream);border-bottom:1px solid #ddd8cc;flex-shrink:0;padding:10px 0 8px;width:100%;}
+.bar-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+/* Flex wrap + centered incomplete rows (avoids one stretched cell on the last row) */
+.cat-grid{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:8px;margin-bottom:6px;width:100%;box-sizing:border-box;}
+@media(min-width:420px){
+  .cat-grid{gap:9px;}
+}
+.cat-btn{
+  border:1.5px solid #d0c8b4;border-radius:6px;padding:10px 6px 8px;cursor:pointer;transition:all 0.15s;text-align:center;background:var(--cream);
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
+  box-sizing:border-box;
+  flex:0 0 calc((100% - 16px) / 3);
+  max-width:calc((100% - 16px) / 3);
+  min-height:72px;
+}
+@media(min-width:560px){
+  .cat-btn{
+    flex:0 0 calc((100% - 24px) / 4);
+    max-width:calc((100% - 24px) / 4);
+  }
+}
+@media(min-width:720px){
+  .cat-btn{
+    flex:0 0 calc((100% - 32px) / 5);
+    max-width:calc((100% - 32px) / 5);
+  }
+}
+.cat-btn:hover,.cat-btn.active{border-color:var(--forest);background:var(--forest);}
+.cat-emoji{font-size:20px;line-height:1;flex-shrink:0;}
+.cat-label{
+  font-family:'DM Mono',monospace;font-size:8.5px;color:var(--ink-light);text-transform:lowercase;line-height:1.2;letter-spacing:0.02em;text-align:center;width:100%;
+  padding:0 2px;min-height:2.5em;
+  display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+}
+.cat-btn:hover .cat-label,.cat-btn.active .cat-label{color:var(--lime);}
+
+/* PROMPT CHIPS */
+.prompt-section{border-top:1px dashed #d0c8b4;padding:8px 0 10px;width:100%;}
+.prompt-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
+.prompt-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-light);margin-bottom:5px;font-style:italic;}
+.prompts-scroll::-webkit-scrollbar{display:none;}
+.prompts-row{display:flex;gap:4px;flex-wrap:wrap;}
+.prompt-chip{display:inline-flex;align-items:center;gap:4px;background:var(--forest);color:var(--lime);border:none;border-radius:20px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;white-space:nowrap;flex-shrink:0;}
+.prompt-chip:hover{background:var(--forest-mid);}
+
+/* CHAT */
+.frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
+.frank-card-grid{margin-top:10px;width:100%;max-width:100%;}
+.frank-card-grid .place-card{margin-bottom:0;}
+.frank-tag{display:inline-block;background:var(--lime);color:var(--forest);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;margin-right:7px;font-family:'DM Mono',monospace;text-transform:lowercase;vertical-align:middle;}
+.user-bubble{background:var(--cream-dark);border:1px solid #d8d0bc;border-radius:14px 3px 14px 14px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:80%;margin-left:auto;color:var(--ink-mid);margin-bottom:10px;}
+.msg-group{margin-bottom:10px;transition:opacity 0.2s;}
+.msg-group.collapsed{cursor:pointer;opacity:0.38;}
+.msg-group.collapsed:hover{opacity:0.58;}
+.msg-group.collapsed .frank-bubble,.msg-group.collapsed .user-bubble{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-height:30px;padding:5px 11px;font-size:10px;border-radius:16px;}
+.msg-group.collapsed .frank-tag{display:none;}
+.msg-group.collapsed .frank-card-grid{display:none;}
+
+/* EVENT CARDS */
+.event-card{background:var(--forest);color:var(--cream);border-radius:6px;padding:16px;margin-bottom:4px;border:1.5px solid var(--lime);position:relative;}
+.event-date-tag{position:absolute;top:12px;right:12px;background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:9px;padding:3px 6px;font-weight:800;border-radius:2px;}
+
+/* PLACE CARDS - eyebrow is now vibe tag */
+.place-card{background:#fff;border:1px solid #ddd8cc;border-radius:6px;overflow:hidden;display:flex;flex-direction:column;min-width:0;}
+.place-card:hover{border-color:var(--forest);}
+.card-img{height:96px;background:var(--forest);position:relative;overflow:hidden;flex-shrink:0;}
+.card-img img{width:100%;height:100%;object-fit:cover;}
+/* eyebrow: short vibe tag - lime pill top-left */
+.card-eyebrow{position:absolute;top:6px;left:6px;background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:7px;font-weight:800;padding:2px 5px;border-radius:2px;z-index:2;text-transform:uppercase;letter-spacing:0.06em;white-space:nowrap;}
+.card-cat{position:absolute;top:6px;right:6px;background:rgba(28,58,42,0.85);color:var(--lime);font-family:'DM Mono',monospace;font-size:7px;padding:2px 5px;border-radius:2px;z-index:2;text-transform:uppercase;}
+.card-body{padding:7px;display:flex;flex-direction:column;flex:1;min-width:0;}
+.card-name{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:0.03em;color:var(--forest);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.card-frank{font-family:'DM Mono',monospace;font-size:9px;color:var(--forest);margin-top:5px;line-height:1.4;border-left:2px solid var(--lime);padding-left:5px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-frank::before{content:"frAnk: ";color:var(--forest);font-weight:600;}
+.card-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px;}
+.card-btn{padding:4px 0;font-family:'DM Mono',monospace;font-size:7.5px;border:1px solid #ddd8cc;background:transparent;color:var(--ink-light);cursor:pointer;border-radius:3px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;}
+.card-btn:hover{border-color:var(--forest);color:var(--forest);}
+.card-btn.saved{border-color:var(--forest);color:var(--forest);background:#eaf2ed;}
+
+/* INPUT */
+.input-wrap{display:flex;gap:10px;align-items:flex-end;padding:8px 0 calc(10px + env(safe-area-inset-bottom, 0px));border-top:1px solid #ddd8cc;background:var(--cream);flex-shrink:0;width:100%;}
+.frank-input{flex:1;background:#fff;border:1px solid #c8c0ac;border-radius:18px;padding:8px 13px;font-family:'DM Mono',monospace;font-size:12px;color:var(--ink);outline:none;resize:none;line-height:1.4;min-height:36px;max-height:90px;}
+.frank-input:focus{border-color:var(--forest);}
+.frank-input::placeholder{color:var(--ink-ghost);}
+.send-btn{width:36px;height:36px;background:var(--forest);border:none;border-radius:50%;color:var(--lime);font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.send-btn:hover{background:var(--forest-mid);}
+.typing{display:flex;gap:4px;align-items:center;padding:3px 0;}
+.typing span{width:5px;height:5px;background:var(--lime);border-radius:50%;animation:bounce 1s infinite;}
+.typing span:nth-child(2){animation-delay:.15s;}.typing span:nth-child(3){animation-delay:.3s;}
+@keyframes bounce{0%,100%{transform:translateY(0);opacity:.3;}50%{transform:translateY(-4px);opacity:1;}}
+
+/* NAV */
+.bottom-nav{display:flex;border-top:1.5px solid var(--forest);background:var(--cream);flex-shrink:0;padding-bottom:calc(8px + env(safe-area-inset-bottom, 0px));box-sizing:border-box;width:100%;}
+.nav-tab{flex:1;padding:8px 4px 6px;display:flex;flex-direction:column;align-items:center;gap:2px;cursor:pointer;border:none;background:transparent;}
+.nav-tab .nav-icon{font-size:16px;line-height:1;}
+.nav-tab .nav-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:lowercase;}
+.nav-tab.active .nav-label{color:var(--forest);font-weight:500;}
+.nav-tab.active{background:rgba(28,58,42,0.04);}
+
+/* MAP */
+.map-fbar-wrap{overflow-x:auto;white-space:nowrap;}
+.map-fbar-wrap::-webkit-scrollbar{display:none;}
+.mfchip{display:inline-block;border:1px solid rgba(28,58,42,0.3);border-radius:20px;padding:4px 9px;font-family:'DM Mono',monospace;font-size:9px;color:var(--forest);cursor:pointer;background:rgba(245,240,232,0.95);white-space:nowrap;flex-shrink:0;margin-right:4px;}
+.mfchip.on,.mfchip:hover{background:var(--forest);color:var(--lime);border-color:var(--forest);}
+#map-viewport{touch-action:none;}
+.map-pin{position:absolute;transform:translate(-50%,-100%);cursor:pointer;pointer-events:all;transition:transform 0.18s;z-index:5;}
+.map-pin.active{z-index:30;transform:translate(-50%,-100%) scale(1.5);}
+.pin-body{width:28px;height:28px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);border:2.5px solid rgba(255,255,255,0.85);display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(0,0,0,0.28);}
+.map-pin.active .pin-body{border:3px solid #fff;box-shadow:0 5px 16px rgba(0,0,0,0.38);}
+.pin-emoji{transform:rotate(45deg);font-size:12px;line-height:1;}
+.pin-label{position:absolute;top:-33px;left:50%;transform:translateX(-50%);background:var(--forest);color:var(--lime);font-family:'DM Mono',monospace;font-size:8px;padding:3px 8px;border-radius:10px;white-space:nowrap;opacity:0;transition:opacity 0.15s;pointer-events:none;z-index:10;box-shadow:0 2px 6px rgba(0,0,0,0.22);}
+.map-pin:hover .pin-label,.map-pin.active .pin-label{opacity:1;}
+.tray-card{background:#fff;border:1.5px solid #ddd8cc;border-radius:8px;padding:9px 10px;min-width:160px;max-width:160px;flex-shrink:0;cursor:pointer;transition:all 0.15s;display:inline-block;}
+.tray-card:hover,.tray-card.active{border-color:var(--forest);}
+.tray-card.active{border-width:2.5px;box-shadow:0 3px 10px rgba(28,58,42,0.18);}
+.tray-cat-dot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:4px;vertical-align:middle;}
+.tray-name{font-weight:800;font-size:12px;text-transform:uppercase;color:var(--forest);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px;}
+.tray-meta{font-family:'DM Mono',monospace;font-size:8.5px;color:var(--ink-ghost);margin-top:2px;}
+.tray-frank{font-family:'DM Mono',monospace;font-size:9px;color:var(--forest);margin-top:4px;line-height:1.4;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.tray-expand{font-family:'DM Mono',monospace;font-size:8px;color:var(--lime-dark);margin-top:5px;font-weight:500;}
+
+/* PROFILE */
+.photo-tile{aspect-ratio:1;background:var(--cream-dark);border-radius:4px;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;cursor:pointer;position:relative;}
+.photo-tile img{width:100%;height:100%;object-fit:cover;}
+.photo-tile .photo-privacy{position:absolute;top:4px;right:4px;background:rgba(0,0,0,0.5);color:#fff;font-size:8px;padding:1px 4px;border-radius:3px;font-family:'DM Mono',monospace;}
+.photo-tile.photo-empty{border:1.5px dashed #c8c0ac;}
+.prof-avatar{position:relative;width:66px;height:66px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;color:var(--lime);flex-shrink:0;overflow:hidden;cursor:pointer;}
+.prof-avatar img{width:100%;height:100%;object-fit:cover;}
+.prof-name-row{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px;margin-top:6px;padding-top:4px;}
+.prof-name-block{flex:1;min-width:0;position:relative;}
+.name-edit-row{display:flex;align-items:center;gap:4px;width:100%;flex-wrap:nowrap;}
+.founder-name-inline{position:relative;flex:1;min-width:0;z-index:2;}
+.p-name-bare{flex:1;min-width:0;border:none;background:transparent;outline:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:26px;text-transform:uppercase;line-height:1.05;color:var(--forest);padding:0;margin:0;box-sizing:border-box;pointer-events:auto;}
+.p-name-bare:focus{background:rgba(28,58,42,0.06);border-radius:4px;padding:2px 4px;margin:-2px -4px;}
+.name-edit-pencil{position:static;flex-shrink:0;width:32px;height:32px;border:none;background:transparent;cursor:pointer;font-size:15px;line-height:1;color:var(--forest);opacity:0.75;padding:0;}
+.name-edit-pencil:hover{opacity:1;}
+.member-badge{display:inline-block;font-family:'DM Mono',monospace;font-size:7px;color:var(--forest);border:1px solid var(--forest);padding:2px 6px;border-radius:2px;margin-top:6px;letter-spacing:0.08em;text-transform:uppercase;}
+.vpill{display:inline-flex;align-items:center;gap:4px;border:1px solid #c8c0ac;border-radius:20px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-mid);cursor:pointer;background:var(--cream);}
+.vpill.active{border-color:var(--forest);background:var(--forest);color:var(--lime);}
+.dpill{display:inline-flex;border:1px solid #c8c0ac;border-radius:20px;padding:5px 10px;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-mid);cursor:pointer;background:var(--cream);}
+.dpill.active{border-color:var(--forest-mid);background:var(--forest-mid);color:var(--lime);}
+.slabel{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;}
+.pinput{width:100%;background:#fff;border:1px solid #c8c0ac;border-radius:4px;padding:7px 10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);outline:none;}
+.pinput:focus{border-color:var(--forest);}
+.stat-box{background:#fff;border:1px solid #ddd8cc;border-radius:5px;padding:9px;text-align:center;flex:1;}
+.stat-n{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:var(--forest);line-height:1;}
+.stat-l{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:2px;}
+.fc{display:inline-flex;align-items:center;gap:5px;background:#fff;border:1px solid #ddd8cc;border-radius:20px;padding:4px 9px 4px 4px;font-family:'DM Mono',monospace;font-size:9.5px;color:var(--ink-mid);}
+.fa{width:20px;height:20px;border-radius:50%;background:var(--forest);display:flex;align-items:center;justify-content:center;font-size:8px;color:var(--lime);font-weight:800;font-family:'Barlow Condensed',sans-serif;}
+
+/* FULL-SCREEN CARD MODAL */
+#full-card-modal{position:fixed;inset:0;background:var(--cream);z-index:300;display:none;flex-direction:column;overflow:hidden;}
+#full-card-modal.open{display:flex;}
+.fc-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 12px;border-bottom:1.5px solid var(--forest);background:var(--cream);flex-shrink:0;}
+.fc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;color:var(--forest);letter-spacing:0.02em;line-height:1;max-width:76%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fc-close{min-width:44px;height:32px;padding:0 10px;background:var(--cream);border:1.5px solid var(--forest);border-radius:6px;color:var(--forest);font-size:10px;font-weight:800;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.fc-close:hover{background:var(--cream-dark);}
+.fc-scroll{flex:1;overflow-y:auto;min-height:0;}
+.fc-body{padding:0 0 24px;}
+.fc-section{padding:16px 16px 0;}
+.fc-section-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.12em;margin-bottom:8px;}
+/* Carousel */
+.fc-carousel-wrap{position:relative;background:var(--forest);flex-shrink:0;}
+.fc-carousel-arrow{position:absolute;top:50%;transform:translateY(-50%);z-index:8;width:42px;height:42px;border-radius:50%;background:rgba(245,240,232,0.95);border:2px solid var(--forest);color:var(--forest);font-size:26px;line-height:1;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 10px rgba(0,0,0,0.2);padding:0;}
+.fc-carousel-arrow:hover{background:var(--lime);}
+.fc-carousel-prev{left:10px;}
+.fc-carousel-next{right:10px;}
+.fc-carousel{display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;-webkit-overflow-scrolling:touch;}
+.fc-carousel::-webkit-scrollbar{height:0;}
+.fc-carousel-slide{flex:0 0 100%;width:100%;scroll-snap-align:start;position:relative;height:min(52vh,320px);}
+.fc-carousel-slide img{width:100%;height:100%;object-fit:cover;display:block;}
+.fc-carousel-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(28,58,42,0.72) 0%,transparent 45%);}
+.fc-carousel-eyebrow{position:absolute;top:12px;left:12px;background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:8px;font-weight:800;padding:4px 8px;border-radius:2px;text-transform:uppercase;letter-spacing:0.08em;max-width:calc(100% - 24px);}
+.fc-carousel-dots{display:flex;justify-content:center;gap:5px;padding:8px 0 10px;background:var(--forest);}
+.fc-carousel-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,0.25);border:none;padding:0;cursor:pointer;}
+.fc-carousel-dot.on{background:var(--lime);}
+/* Meta grid */
+.fc-meta-grid{display:grid;grid-template-columns:1fr;gap:12px;}
+@media(min-width:380px){
+  .fc-meta-grid{grid-template-columns:1fr 1fr;align-items:start;}
+}
+.fc-meta-block{border:1px solid #ddd8cc;border-radius:8px;padding:10px 12px;background:#fff;}
+.fc-meta-line{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);line-height:1.45;}
+.fc-meta-line a{color:var(--lime-dark);text-decoration:underline;text-underline-offset:2px;}
+.fc-score-row{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-start;}
+.fc-score-block{display:flex;align-items:flex-start;gap:6px;}
+.fc-score{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;color:var(--forest);line-height:1;display:flex;align-items:baseline;gap:2px;}
+.fc-score-denom{font-size:12px;font-weight:600;color:var(--ink-ghost);}
+.fc-score-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);line-height:1;margin-top:2px;max-width:100px;}
+.fc-score-info{position:relative;display:inline-flex;align-self:center;}
+.fc-score-icon{width:16px;height:16px;border-radius:50%;background:var(--forest);color:var(--lime);font-family:'DM Mono',monospace;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
+.fc-score-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'DM Mono',monospace;font-size:9px;padding:8px 10px;border-radius:4px;width:min(240px,calc(100vw - 48px));line-height:1.5;display:none;z-index:20;white-space:normal;}
+.fc-score-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink);}
+.fc-score-info:hover .fc-score-tooltip,.fc-score-info.tip-open .fc-score-tooltip{display:block;}
+/* Social row */
+.fc-social-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-family:'DM Mono',monospace;font-size:10px;}
+.fc-social-row a{color:var(--forest);font-weight:500;text-decoration:underline;text-underline-offset:2px;}
+.fc-pipe{color:#d0c8b4;}
+.fc-section-social{margin-bottom:18px;}
+/* Vibe section */
+.fc-vibe{background:rgba(28,58,42,0.72);border:1px solid rgba(28,58,42,0.35);border-radius:8px;padding:13px 14px;margin:22px 16px 16px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);}
+.fc-vibe-label{font-family:'DM Mono',monospace;font-size:8px;color:rgba(184,232,50,0.9);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+.fc-vibe-text{font-family:'DM Mono',monospace;font-size:11px;color:rgba(245,240,232,0.92);line-height:1.65;}
+/* Tags */
+.fc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
+.fctag{font-family:'DM Mono',monospace;font-size:8px;padding:3px 8px;border-radius:8px;background:var(--cream-dark);color:var(--ink-light);border:1px solid #ddd8cc;}
+/* Hours */
+.fc-hours{background:#fff;border:1px solid #ddd8cc;border-radius:8px;padding:10px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);line-height:1.5;}
+/* Reviews */
+.fc-reviews-list{display:flex;flex-direction:column;gap:8px;}
+.fc-review-card{border:1px solid #ddd8cc;border-radius:8px;padding:10px 12px;background:#fff;}
+.fc-review-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;}
+.fc-review-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:var(--forest);text-transform:uppercase;}
+.fc-review-badge{font-family:'DM Mono',monospace;font-size:7px;padding:2px 6px;border-radius:2px;background:var(--lime);color:var(--forest);}
+.fc-review-stars{font-family:'DM Mono',monospace;font-size:9px;color:var(--lime-dark);}
+.fc-review-text{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);line-height:1.5;}
+/* Actions */
+.fc-actions{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:16px 16px 8px;}
+.fc-act-btn{padding:12px 4px;font-family:'DM Mono',monospace;font-size:10px;border:1.5px solid #ddd8cc;background:transparent;color:var(--ink-light);cursor:pointer;border-radius:4px;text-align:center;}
+.fc-act-btn:hover{border-color:var(--forest);color:var(--forest);}
+.fc-act-btn.fc-saved{border-color:var(--forest);background:#eaf2ed;color:var(--forest);}
+.fc-act-rate{border-color:var(--lime-dark);color:var(--lime-dark);}
+
+/* RATE MODAL - full 5-category */
+#m-rate{position:fixed;inset:0;background:rgba(26,26,15,0.7);display:none;align-items:flex-end;justify-content:center;z-index:400;}
+#m-rate.open{display:flex;}
+.rate-sheet{background:var(--cream);border-radius:14px 14px 0 0;width:100%;max-height:92vh;overflow-y:auto;padding:20px 16px 28px;}
+.rate-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;color:var(--forest);margin-bottom:2px;}
+.rate-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:16px;}
+.rate-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:0.5px solid #ddd8cc;}
+.rate-row:last-of-type{border-bottom:none;}
+.rate-row-label{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-mid);font-weight:500;}
+.rate-stars-wrap{display:flex;gap:5px;}
+.rate-star{font-size:22px;cursor:pointer;color:#d0c8b4;transition:color 0.1s;user-select:none;}
+.rate-star.on{color:var(--lime-dark);}
+.rate-photo-btn{width:100%;margin-top:14px;padding:11px;background:#fff;border:1.5px dashed #c8c0ac;border-radius:4px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);cursor:pointer;text-align:center;}
+.rate-photo-btn:hover{border-color:var(--forest);color:var(--forest);}
+.rate-post-row{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:12px;}
+.rate-post-btn{padding:10px 6px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;border-radius:4px;text-align:center;font-weight:500;}
+.rate-post-private{background:var(--forest);color:var(--lime);border:none;}
+.rate-post-public{background:var(--lime);color:var(--forest);border:none;}
+.rate-post-draft{grid-column:1/-1;background:transparent;border:1px solid #c8c0ac;color:var(--ink-light);}
+.rate-notes{width:100%;min-height:72px;margin-top:12px;padding:10px 12px;border:1px solid #c8c0ac;border-radius:6px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);resize:vertical;box-sizing:border-box;}
+.rate-notes:focus{outline:none;border-color:var(--forest);}
+.rate-notes-lbl{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-top:14px;margin-bottom:4px;}
+.rate-photo-preview{margin-top:8px;max-height:120px;border-radius:6px;display:none;border:1px solid #ddd8cc;}
+.rate-photo-preview.show{display:block;}
+
+/* SHARE MODAL */
+.modal-bg{position:fixed;inset:0;background:rgba(26,26,15,.65);display:none;align-items:center;justify-content:center;z-index:400;}
+.modal-bg.open{display:flex;}
+.modal-box{background:var(--cream);border:1px solid #c8c0ac;border-radius:6px;padding:20px;width:92%;max-width:340px;}
+.fbtn{background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:10px 18px;cursor:pointer;border-radius:3px;}
+.gbtn{background:transparent;border:1px solid #c8c0ac;color:var(--ink-light);font-family:'DM Mono',monospace;font-size:10px;padding:6px 12px;cursor:pointer;border-radius:3px;}
+.gbtn:hover{border-color:var(--forest);color:var(--forest);}
+.psm{display:inline-block;border:1px solid #c8c0ac;border-radius:20px;padding:6px 12px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);cursor:pointer;background:var(--cream);}
+.psm:hover{border-color:var(--forest);background:var(--forest);color:var(--lime);}
+
+/* ONBOARDING */
+@keyframes typewriter{from{width:0;}to{width:100%;}}
+@keyframes fadein{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:translateY(0);}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+.fu{animation:fadeUp .22s ease forwards;}
+#onboarding{touch-action:manipulation;-webkit-tap-highlight-color:transparent;}
+#onboarding input,#onboarding button,#onboarding textarea{pointer-events:auto;-webkit-user-select:text;user-select:text;touch-action:manipulation;}
+#ob-name-input{position:relative;z-index:2;caret-color:#b8e832;}
+
+/* SAVE TO LIST - bottom sheet */
+.sheet-overlay{position:fixed;inset:0;background:rgba(26,26,15,0.62);opacity:0;pointer-events:none;transition:opacity 0.18s ease;z-index:450;}
+.sheet-overlay.open{opacity:1;pointer-events:auto;}
+.sheet{position:fixed;left:0;right:0;bottom:0;transform:translateY(110%);transition:transform 0.3s cubic-bezier(.25,.8,.25,1);z-index:460;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;pointer-events:none;}
+.sheet.open{transform:translateY(0);pointer-events:auto;}
+.sheet-inner{background:var(--cream);border-top:2px solid var(--forest);border-radius:16px 16px 0 0;box-shadow:0 -12px 30px rgba(0,0,0,0.22);padding:10px 14px 16px;max-height:78vh;overflow:auto;width:100%;max-width:min(100%,560px);}
+.sheet-inner.save-sheet-stage{background:linear-gradient(165deg,#fffefb 0%,var(--cream) 42%,#ede8dc 100%);border-top:3px solid var(--forest);border-left:3px solid var(--forest);border-right:3px solid var(--forest);border-radius:22px 22px 0 0;box-shadow:0 -6px 0 rgba(28,58,42,0.08),0 -20px 50px rgba(0,0,0,0.2);padding:12px 18px calc(20px + env(safe-area-inset-bottom, 0px));}
+.sheet-h.save-sheet-h{font-size:clamp(22px,4vw,30px);letter-spacing:-0.02em;}
+.sheet-sticker-card{background:#fffef6;border:2.5px solid var(--forest);border-radius:3px 14px 12px 5px;box-shadow:4px 5px 0 rgba(28,58,42,0.11),inset 0 1px 0 rgba(255,255,255,0.85);padding:14px 14px 16px;position:relative;transform:rotate(-0.4deg);margin-bottom:4px;}
+.sheet-sticker-card::before{content:'';position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:56px;height:14px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.65),transparent);opacity:0.5;pointer-events:none;}
+.sheet-sticker-card.sheet-sticker-alt{transform:rotate(0.45deg);}
+.sheet-list-sticker .sheet-item:nth-child(odd){transform:rotate(-0.25deg);}
+.sheet-list-sticker .sheet-item:nth-child(even){transform:rotate(0.3deg);}
+.sheet-or span{display:inline-block;background:var(--forest);color:var(--lime);font-family:'DM Mono',monospace;font-size:8px;font-weight:800;letter-spacing:0.12em;padding:4px 12px;border-radius:999px;text-transform:uppercase;}
+.sheet-grab{width:52px;height:5px;border-radius:99px;background:rgba(28,58,42,0.22);margin:6px auto 10px;}
+.sheet-title{display:flex;align-items:flex-start;justify-content:space-between;gap:10px;margin-bottom:10px;}
+.sheet-title-left{min-width:0;}
+.sheet-h{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;color:var(--forest);line-height:1;}
+.sheet-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);letter-spacing:0.06em;margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sheet-close{background:var(--forest);color:var(--lime);border:none;border-radius:999px;font-family:'DM Mono',monospace;font-size:10px;font-weight:500;padding:7px 10px;cursor:pointer;flex-shrink:0;}
+.sheet-close:hover{background:var(--forest-mid);}
+.sheet-list{display:flex;flex-direction:column;gap:7px;}
+.sheet-item{display:flex;align-items:center;justify-content:space-between;gap:10px;background:#fff;border:2px solid var(--forest);border-radius:4px 12px 10px 6px;padding:12px 12px;cursor:pointer;transition:transform 0.15s,box-shadow 0.15s;box-shadow:3px 4px 0 rgba(28,58,42,0.07);}
+.sheet-item:hover{border-color:var(--forest);box-shadow:4px 6px 0 rgba(28,58,42,0.1);transform:translateY(-1px);}
+.sheet-item.on{border-color:var(--lime-dark);box-shadow:3px 4px 0 rgba(184,232,50,0.35),inset 0 0 0 1px rgba(28,58,42,0.06);background:linear-gradient(165deg,rgba(184,232,50,0.2),#fff 55%);}
+.sheet-item-left{display:flex;align-items:center;gap:10px;min-width:0;}
+.sheet-sticker{width:32px;height:32px;border-radius:6px 10px 8px 5px;background:var(--lime);border:2px solid var(--forest);color:var(--forest);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;flex-shrink:0;box-shadow:2px 2px 0 rgba(28,58,42,0.12);transform:rotate(-3deg);}
+.sheet-item-name{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+.sheet-item-meta{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:3px;}
+.sheet-check{font-family:'DM Mono',monospace;font-size:11px;color:var(--forest);background:rgba(28,58,42,0.06);border:1px solid rgba(28,58,42,0.18);border-radius:999px;padding:6px 10px;flex-shrink:0;}
+.sheet-danger{margin-top:10px;display:flex;gap:8px;}
+.sheet-danger button{flex:1;background:transparent;border:1.5px solid rgba(28,58,42,0.22);border-radius:10px;padding:11px 10px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-light);cursor:pointer;}
+.sheet-danger button:hover{border-color:var(--forest);color:var(--forest);}
+.sheet-danger .remove{border-color:rgba(255,107,107,0.55);color:#b54040;}
+.sheet-danger .remove:hover{border-color:#b54040;color:#b54040;}
+
+/* PROFILE */
+.founder-name-block{width:100%;margin-bottom:6px;}
+.founder-name-block .pinput{font-size:20px;font-weight:800;font-family:'Barlow Condensed',sans-serif;text-transform:uppercase;letter-spacing:0.02em;color:var(--forest);}
+/* Explore cover studio */
+.explore-cover-modal-bg{position:fixed;inset:0;background:rgba(26,26,15,0.65);z-index:470;display:none;align-items:flex-end;justify-content:center;}
+.explore-cover-modal-bg.open{display:flex;}
+.explore-cover-panel{background:var(--cream);border-radius:16px 16px 0 0;width:100%;max-width:560px;max-height:88vh;overflow-y:auto;padding:16px 16px calc(22px + env(safe-area-inset-bottom, 0px));border-top:3px solid var(--forest);}
+.explore-cover-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0;}
+.explore-cover-opt{aspect-ratio:1;border:2px solid #ddd8cc;border-radius:8px;overflow:hidden;cursor:pointer;padding:0;background:#fff;}
+.explore-cover-opt.on,.explore-cover-opt:hover{border-color:var(--forest);box-shadow:0 0 0 2px rgba(184,232,50,0.35);}
+.explore-cover-opt img{width:100%;height:100%;object-fit:cover;display:block;}
+.explore-cover-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
+.explore-cover-gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
+.explore-cover-gen-row input[type="color"]{width:44px;height:36px;border:1px solid #c8c0ac;border-radius:6px;padding:0;cursor:pointer;}
+.list-folder-card{background:var(--cream-dark);border:1px solid #d0c8b4;border-radius:8px;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+.list-folder-visual{height:72px;background:var(--forest);position:relative;flex-shrink:0;}
+.list-folder-visual img{width:100%;height:100%;object-fit:cover;display:block;}
+.list-folder-visual .list-folder-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(28,58,42,0.35);}
+.list-folder-body{padding:10px 12px 12px;}
+.list-folder-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
+.list-folder-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;color:var(--forest);line-height:1.15;}
+.list-privacy-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(28,58,42,0.12);}
+.list-privacy-ico{font-size:14px;line-height:1;width:22px;text-align:center;}
+.list-privacy-ico.priv{color:var(--forest);}
+.list-privacy-ico.pub{color:var(--lime);filter:saturate(1.1);}
+.priv-toggle{display:inline-flex;border:1px solid #c8c0ac;border-radius:16px;overflow:hidden;background:var(--cream);}
+.priv-toggle button{font-family:'DM Mono',monospace;font-size:7px;padding:5px 8px;border:none;cursor:pointer;background:transparent;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.04em;}
+.priv-toggle button.on{background:var(--forest);color:var(--lime);}
+
+#toast{position:fixed;bottom:calc(72px + env(safe-area-inset-bottom, 0px));left:50%;transform:translateX(-50%);background:var(--forest);color:var(--lime);font-family:'DM Mono',monospace;font-size:10px;padding:6px 14px;border-radius:16px;display:none;z-index:500;white-space:nowrap;max-width:min(92vw,420px);text-align:center;}
+
+/* EXPLORE - global feed */
+.explore-feed{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:10px;padding:0 0 8px;align-items:stretch;}
+.explore-feed-card{width:100%;text-align:left;border:1.5px solid var(--forest);border-radius:12px;background:var(--cream-dark);padding:0;margin-bottom:0;cursor:pointer;position:relative;overflow:hidden;transition:border-color 0.15s,box-shadow 0.15s;display:flex;flex-direction:column;min-height:100%;}
+.explore-feed-card:hover{border-color:var(--lime-dark);box-shadow:0 6px 18px rgba(28,58,42,0.14);}
+.explore-card-cover{width:100%;aspect-ratio:16/10;background:var(--forest);position:relative;overflow:hidden;flex-shrink:0;}
+.explore-card-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.explore-card-sticker{position:absolute;top:8px;right:8px;width:28px;height:28px;border-radius:8px;background:var(--lime);border:2px solid var(--forest);display:flex;align-items:center;justify-content:center;font-size:13px;line-height:1;z-index:2;}
+.explore-card-body{padding:10px 10px 12px;text-align:left;position:relative;flex:1;display:flex;flex-direction:column;}
+.explore-card-body::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lime);}
+.explore-card-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:var(--forest);line-height:1.15;padding-right:36px;}
+.explore-card-by{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-mid);letter-spacing:0.06em;margin-top:6px;}
+.explore-card-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:4px;}
+.explore-preview-overlay{position:fixed;inset:0;background:rgba(26,26,15,0.55);z-index:280;display:none;align-items:flex-end;justify-content:center;}
+.explore-preview-overlay.open{display:flex;}
+.explore-preview-panel{background:var(--cream);border-top:2px solid var(--forest);border-radius:16px 16px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 -12px 32px rgba(0,0,0,0.2);}
+.explore-preview-cover{width:100%;aspect-ratio:16/9;background:var(--forest);flex-shrink:0;}
+.explore-preview-cover img{width:100%;height:100%;object-fit:cover;display:block;}
+.explore-preview-head{padding:14px 16px 10px;border-bottom:1px solid #ddd8cc;flex-shrink:0;position:relative;}
+.explore-preview-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;color:var(--forest);line-height:1.1;}
+.explore-preview-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:6px;}
+.explore-preview-close{position:absolute;top:12px;right:12px;min-width:44px;height:30px;padding:0 10px;background:var(--cream);border:1.5px solid var(--forest);border-radius:6px;color:var(--forest);font-size:9px;font-weight:800;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.05em;cursor:pointer;display:flex;align-items:center;justify-content:center;}
+.explore-preview-scroll{flex:1;overflow-y:auto;min-height:0;padding:10px 14px 8px;}
+.explore-spot-row{display:flex;gap:10px;align-items:flex-start;padding:10px;border:1px solid #ddd8cc;border-radius:8px;background:#fff;margin-bottom:8px;cursor:pointer;transition:border-color 0.12s;}
+.explore-spot-row:hover{border-color:var(--forest);}
+.explore-spot-media{display:flex;flex-direction:column;gap:4px;flex-shrink:0;}
+.explore-spot-thumb{width:64px;height:64px;border-radius:6px;object-fit:cover;background:var(--forest);flex-shrink:0;display:block;}
+.explore-spot-thumb.explore-spot-extra{width:64px;height:52px;border-radius:4px;opacity:0.95;}
+.explore-spot-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;color:var(--forest);line-height:1.1;}
+.explore-spot-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:2px;}
+.explore-spot-scores{display:flex;flex-wrap:wrap;gap:8px 12px;margin-top:6px;font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-mid);}
+.explore-spot-scores span{color:var(--forest);font-weight:600;}
+.explore-spot-note{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-mid);line-height:1.45;margin-top:6px;display:-webkit-box;-webkit-line-clamp:3;line-clamp:3;-webkit-box-orient:vertical;overflow:hidden;}
+.explore-preview-foot{padding:12px 14px 18px;border-top:1px solid #ddd8cc;flex-shrink:0;background:var(--cream);}
+.explore-copy-btn{width:100%;padding:12px;background:var(--forest);color:var(--lime);border:2px solid var(--forest);border-radius:8px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;letter-spacing:0.02em;cursor:pointer;}
+.explore-copy-btn:hover{background:var(--forest-mid);}
+
+/* Account flyout */
+.account-flyout{position:fixed;z-index:1200;top:52px;right:max(12px, env(safe-area-inset-right));background:#fff;border:1.5px solid var(--forest);border-radius:8px;overflow:hidden;box-shadow:0 8px 24px rgba(0,0,0,0.15);min-width:160px;}
+.account-flyout button{display:block;width:100%;text-align:left;padding:10px 14px;border:none;background:#fff;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);cursor:pointer;}
+.account-flyout button:hover{background:var(--cream-dark);}
+.account-flyout button+button{border-top:1px solid #ddd8cc;}
+
+/* Activity feed */
+
+/* Save sheet - create list */
+.sheet-create-wrap{border:none;padding:0;margin:0;background:transparent;}
+.sheet-create-h{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;color:var(--forest);text-transform:uppercase;letter-spacing:0.02em;margin-bottom:10px;}
+.sheet-create-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:12px;line-height:1.4;}
+.sheet-or{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin:18px 0 12px;text-align:center;}
+
+/* Live events tab */
+.live-hero{background:linear-gradient(165deg, var(--forest) 0%, #1a3020 100%);padding:16px 14px 18px;border-bottom:1.5px solid var(--lime);}
+.live-hero-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:var(--cream);text-transform:uppercase;line-height:1.15;letter-spacing:-0.02em;}
+.live-hero-sub{font-family:'DM Mono',monospace;font-size:9px;color:rgba(245,240,232,0.75);margin-top:8px;line-height:1.45;}
+.live-search{width:100%;margin-top:14px;padding:10px 12px;border-radius:8px;border:1px solid rgba(255,255,255,0.25);background:rgba(255,255,255,0.12);color:var(--cream);font-family:'DM Mono',monospace;font-size:11px;outline:none;}
+.live-search::placeholder{color:rgba(245,240,232,0.45);}
+.live-chips{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap;}
+.live-chip{font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;border-radius:20px;border:1px solid rgba(255,255,255,0.35);background:transparent;color:var(--cream);cursor:pointer;}
+.live-chip.on,.live-chip:hover{background:var(--lime);color:var(--forest);border-color:var(--lime);}
+.live-cal-wrap{padding:0 8px;margin-top:10px;margin-bottom:6px;}
+.live-cal-h{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
+.live-calendar-strip{display:flex;gap:8px;overflow-x:auto;padding-bottom:8px;-webkit-overflow-scrolling:touch;}
+.live-calendar-strip::-webkit-scrollbar{height:0;}
+.live-cal-day{flex:0 0 auto;min-width:52px;border:1px solid #ddd8cc;border-radius:8px;padding:8px 6px;text-align:center;background:#fff;cursor:pointer;}
+.live-cal-day.on{border-color:var(--forest);background:rgba(28,58,42,0.06);}
+.live-cal-day .d{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--forest);}
+.live-cal-day .m{font-family:'DM Mono',monospace;font-size:7px;color:var(--ink-ghost);text-transform:uppercase;}
+.live-saved-list{margin-top:8px;}
+.live-saved-row{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 10px;border:1px solid #ddd8cc;border-radius:8px;background:#fff;margin-bottom:6px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);}
+.live-section-h{font-family:'DM Mono',monospace;font-size:9px;color:var(--lime-dark);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;}
+.event-actions{display:flex;gap:6px;margin-top:10px;flex-wrap:wrap;}
+.event-actions button{flex:1;min-width:100px;padding:8px;font-family:'DM Mono',monospace;font-size:8px;border-radius:4px;cursor:pointer;border:1px solid #ddd8cc;background:var(--cream);}
+.event-actions button.primary{background:var(--lime);color:var(--forest);border-color:var(--forest);font-weight:600;}
+.event-extra{margin-top:12px;border-left:2px solid rgba(184,232,50,0.55);padding-left:10px;}
+.event-extra-bullet{font-family:'DM Mono',monospace;font-size:9.5px;color:rgba(255,255,255,0.88);line-height:1.45;margin-top:7px;white-space:normal;}
+.review-card{background:#fff;border:1px solid #ddd8cc;border-radius:8px;padding:10px 12px;margin-bottom:8px;}
+.review-card-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:var(--forest);text-transform:uppercase;}
+.review-card-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:4px;}
+.review-card-note{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);margin-top:8px;line-height:1.45;}
+</style>
+</head>
+<body>
+
+<div class="beta-status-bar">frAnk · Austin · the better list</div>
+
+<!-- ONBOARDING -->
+<div id="onboarding" style="position:fixed;inset:0;background:#1c3a2a;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
+  <div id="ob-welcome" style="width:100%;max-width:340px;display:flex;flex-direction:column;align-items:center;text-align:center;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:68px;color:#b8e832;line-height:1;margin-bottom:4px;">fr<span style="color:#fff;">A</span>nk</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:0.15em;margin-bottom:44px;">the better list</div>
+    <div style="width:100%;margin-bottom:10px;overflow:hidden;">
+      <div id="ob-typewriter" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:48px;color:#fff;text-transform:uppercase;white-space:nowrap;overflow:hidden;width:0;animation:typewriter 0.7s steps(10,end) 0.3s forwards;">you're in.</div>
+    </div>
+    <div id="ob-caption" style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.5);letter-spacing:0.06em;margin-bottom:40px;max-width:300px;line-height:1.5;opacity:0;animation:fadein 0.5s ease 1.2s forwards;">stop bouncing between apps. one place for where to go, and who said so.</div>
+    <button id="ob-cta" onclick="showOBScreen('ob-auth')" style="width:100%;background:#b8e832;color:#1c3a2a;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;padding:18px;border-radius:4px;cursor:pointer;opacity:0;animation:fadein 0.4s ease 1.6s forwards;">GET STARTED</button>
+  </div>
+  <div id="ob-auth" style="width:100%;max-width:340px;display:none;flex-direction:column;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;color:#fff;margin-bottom:8px;text-transform:uppercase;line-height:1.05;">stay in the loop</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:24px;line-height:1.55;">email for receipts &amp; drops. phone for login codes &amp; the occasional nudge from frAnk. we won't spam you.</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">email address</div>
+    <input id="ob-email-input" type="email" placeholder="you@example.com" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:14px;font-family:'DM Mono',monospace;color:#fff;font-size:14px;margin-bottom:12px;outline:none;" onfocus="this.style.borderColor='#b8e832'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" onkeydown="if(event.key==='Enter')document.getElementById('ob-phone-input').focus()"/>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;">phone number</div>
+    <input id="ob-phone-input" type="tel" placeholder="+1 (512) 000-0000" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:14px;font-family:'DM Mono',monospace;color:#fff;font-size:14px;margin-bottom:16px;outline:none;" onfocus="this.style.borderColor='#b8e832'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" onkeydown="if(event.key==='Enter')showOBScreen('ob-profile')"/>
+    <button onclick="showOBScreen('ob-profile')" style="width:100%;background:#b8e832;color:#1c3a2a;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;padding:18px;border-radius:4px;cursor:pointer;margin-bottom:10px;">send code</button>
+    <button onclick="showOBScreen('ob-profile')" style="background:transparent;border:none;font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.25);cursor:pointer;padding:8px;text-align:center;">skip for now</button>
+  </div>
+  <div id="ob-profile" style="width:100%;max-width:340px;display:none;flex-direction:column;position:relative;z-index:2;">
+    <button type="button" onclick="showOBScreen('ob-auth')" style="background:transparent;border:none;color:rgba(255,255,255,0.35);font-size:22px;cursor:pointer;align-self:flex-start;padding:0;margin-bottom:28px;line-height:1;">←</button>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:30px;text-transform:uppercase;color:#fff;line-height:1.1;margin-bottom:8px;">claim your name</div>
+    <div style="font-family:'DM Mono',monospace;font-size:11px;color:rgba(255,255,255,0.45);margin-bottom:20px;line-height:1.55;">this is how you show up on lists, reviews, and when friends look you up.</div>
+    <input id="ob-name-input" type="text" placeholder="your name" maxlength="30" autocomplete="name" inputmode="text" enterkeyhint="done" style="width:100%;background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.15);border-radius:4px;padding:15px;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;color:#fff;outline:none;letter-spacing:0.02em;margin-bottom:12px;" onfocus="this.style.borderColor='#b8e832'" onblur="this.style.borderColor='rgba(255,255,255,0.15)'" onkeydown="if(event.key==='Enter')finishOnboarding()"/>
+    <div id="ob-name-error" style="font-family:'DM Mono',monospace;font-size:10px;color:#ff6b6b;margin-bottom:10px;display:none;">tell frank your name first.</div>
+    <button type="button" onclick="finishOnboarding()" style="width:100%;background:#b8e832;color:#1c3a2a;border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;padding:18px;border-radius:4px;cursor:pointer;">let's go</button>
+  </div>
+</div>
+
+<div class="app-shell">
+
+<div id="app">
+
+<!-- CHAT -->
+<div id="screen-chat" class="screen active">
+  <div class="frank-header">
+    <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+      <div><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">the better list</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;">
+      <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
+        <div class="header-avatar-slot" style="width:28px;height:28px;border-radius:50%;background:var(--forest);border:1.5px solid var(--lime-dark);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--lime);overflow:hidden;flex-shrink:0;">
+          <span class="header-avatar-init">🧑</span>
+        </div>
+      </button>
+    </div>
+  </div>
+
+  <!-- QUOTE BAR -->
+  <div id="quote-bar">
+    <div id="q-text"></div>
+    <div id="q-attr"></div>
+  </div>
+
+  <div class="cat-bar">
+    <div class="bar-label">browse</div>
+    <div class="cat-grid" id="cat-grid-primary"></div>
+    <div class="prompt-section">
+      <div class="prompt-label">or just ask</div>
+      <div class="prompts-row">
+        <button class="prompt-chip" onclick="firePrompt('dog friendly coffee outdoor','🐶 dogs welcome')">🐶 dogs welcome</button>
+        <button class="prompt-chip" onclick="firePrompt('date night upscale restaurant','🕯 date night')">🕯 date night</button>
+        <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 survive the night')">🌙 late night</button>
+        <button class="prompt-chip" onclick="firePrompt('best food truck austin','🚚 street food')">🚚 street food</button>
+        <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 work from here')">💻 wfh</button>
+        <button class="prompt-chip" onclick="firePrompt('live music venue bar','🎶 live music')">🎶 live music</button>
+        <button class="prompt-chip" onclick="firePrompt('casual no reservation bites','🍕 casual bites')">🍕 casual</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="chat-body" style="flex:1;min-height:0;padding:8px 0 10px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;"></div>
+
+  <div class="input-wrap">
+    <textarea class="frank-input" id="user-input" placeholder="ask frAnk anything..." rows="1" onkeydown="hkey(event)" oninput="aresize(this)"></textarea>
+    <button class="send-btn" onclick="sendMsg()">→</button>
+  </div>
+</div>
+
+<!-- LIVE EVENTS (dedicated - not the chat feed) -->
+<div id="screen-events" class="screen">
+  <div class="frank-header">
+    <div><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">live events · austin</div></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;">
+      <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
+        <div class="header-avatar-slot" style="width:28px;height:28px;border-radius:50%;background:var(--forest);border:1.5px solid var(--lime-dark);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--lime);overflow:hidden;flex-shrink:0;">
+          <span class="header-avatar-init">🧑</span>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;min-height:0;padding:0 0 8px;">
+    <div class="live-hero">
+      <div class="live-hero-title">what are you doing tonight?</div>
+      <div class="live-hero-sub">browse what's on. save & tickets. your calendar stays here, not in the chat.</div>
+      <input type="search" id="live-event-search" class="live-search" placeholder="search venues, vibes, neighborhoods…" oninput="filterLiveEvents()" autocomplete="off"/>
+      <div class="live-chips">
+        <button type="button" class="live-chip on" data-live-filter="all" onclick="setLiveFilter(this,'all')">all</button>
+        <button type="button" class="live-chip" data-live-filter="tonight" onclick="setLiveFilter(this,'tonight')">tonight</button>
+        <button type="button" class="live-chip" data-live-filter="week" onclick="setLiveFilter(this,'week')">this week</button>
+      </div>
+    </div>
+    <div class="live-cal-wrap">
+      <div class="live-cal-h">your calendar</div>
+      <div id="live-calendar-strip" class="live-calendar-strip"></div>
+      <div id="live-saved-list" class="live-saved-list"></div>
+    </div>
+    <div style="padding:0 8px;">
+      <div class="live-section-h">happening soon</div>
+      <div id="events-list"></div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);margin-top:16px;line-height:1.7;">curated weekly. tap save to add to your calendar. tickets are just for you. flip public if you want friends to see it.</div>
+    </div>
+  </div>
+</div>
+
+<!-- EXPLORE - global feed (simulated public lists) -->
+<div id="screen-explore" class="screen">
+  <div class="frank-header">
+    <div><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">explore · public lists</div></div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;">
+      <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
+        <div class="header-avatar-slot" style="width:28px;height:28px;border-radius:50%;background:var(--forest);border:1.5px solid var(--lime-dark);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--lime);overflow:hidden;flex-shrink:0;">
+          <span class="header-avatar-init">🧑</span>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:8px 8px 12px;min-height:0;">
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--lime-dark);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:12px;">curated by members · all public</div>
+    <div id="explore-feed" class="explore-feed"></div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);margin-top:8px;line-height:1.6;">public lists are curated samples. tap one to browse spots, then save what you like.</div>
+  </div>
+</div>
+
+<!-- PROFILE -->
+<div id="screen-profile" class="screen">
+  <div class="frank-header">
+    <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
+      <button type="button" onclick="tryLeaveProfile()" style="background:transparent;border:none;color:var(--forest);font-size:24px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">←</button>
+      <div style="flex:1;min-width:0;"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub" style="text-transform:uppercase;letter-spacing:0.1em;">my lists</div></div>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
+      <button type="button" class="gbtn" onclick="saveProf()" style="padding:5px 10px;font-size:9px;border:1px solid var(--forest);background:none;border-radius:4px;font-family:'DM Mono',monospace;text-transform:uppercase;cursor:pointer;">save</button>
+      <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
+        <div class="header-avatar-slot" style="width:28px;height:28px;border-radius:50%;background:var(--forest);border:1.5px solid var(--lime-dark);display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--lime);overflow:hidden;flex-shrink:0;">
+          <span class="header-avatar-init">🧑</span>
+        </div>
+      </button>
+    </div>
+  </div>
+  <div style="flex:1;overflow-y:auto;padding:18px 10px 14px;min-height:0;">
+    <div class="prof-name-row">
+      <div class="prof-avatar" id="prof-avatar" onclick="event.stopPropagation();document.getElementById('av-input').click();" title="add profile photo" role="button" tabindex="0">
+        <span id="av-init">?</span>
+      </div>
+      <div class="prof-name-block">
+        <div class="name-edit-row">
+          <div class="founder-name-inline">
+            <input class="p-name-bare" id="p-name" placeholder="your name" maxlength="40" autocomplete="name" oninput="updateInit();markProfileDirty();"/>
+          </div>
+          <button type="button" class="name-edit-pencil" onclick="event.stopPropagation();document.getElementById('p-name').focus();" aria-label="edit name">✎</button>
+        </div>
+        <div class="member-badge">member</div>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:20px;">
+      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="toast('connect instagram: coming soon.')">📸 connect instagram</button>
+      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="toast('connect tiktok: coming soon.')">🎵 connect tiktok</button>
+    </div>
+    <div class="slabel">your stats</div>
+    <div style="display:flex;gap:8px;margin-bottom:16px;">
+      <div class="stat-box"><div class="stat-n" id="st-saved">0</div><div class="stat-l">saved</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-reviews">0</div><div class="stat-l">reviewed</div></div>
+      <div class="stat-box"><div class="stat-n" id="st-photos">0</div><div class="stat-l">photos</div></div>
+    </div>
+    <div>
+    <div class="slabel">your vibe</div>
+    <div id="profile-vibe-pills" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🐶 dogs</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🌿 outdoor</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🌙 late night</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">☕ remote work</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🕯 date spots</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🥂 day drink</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🚚 food trucks</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">🎶 live music</button>
+      <button type="button" class="vpill" onclick="this.classList.toggle('active');markProfileDirty();">💸 cheap eats</button>
+    </div>
+    <div class="slabel">dietary</div>
+    <div id="profile-diet-pills" style="display:flex;flex-wrap:wrap;gap:5px;margin-bottom:14px;">
+      <button type="button" class="dpill" onclick="this.classList.toggle('active');markProfileDirty();">vegan</button>
+      <button type="button" class="dpill" onclick="this.classList.toggle('active');markProfileDirty();">vegetarian</button>
+      <button type="button" class="dpill" onclick="this.classList.toggle('active');markProfileDirty();">gluten free</button>
+      <button type="button" class="dpill" onclick="this.classList.toggle('active');markProfileDirty();">dairy free</button>
+      <button type="button" class="dpill" onclick="this.classList.toggle('active');markProfileDirty();">halal</button>
+    </div>
+    </div>
+    <div class="slabel">my lists</div>
+    <div id="list-folders-wrap" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(152px,1fr));gap:10px;margin-bottom:20px;"></div>
+    <div class="slabel" id="rating-drafts-heading" style="display:none;">rating drafts</div>
+    <div id="rating-drafts-wrap" style="margin-bottom:18px;display:none;"></div>
+    <div class="slabel">my reviews</div>
+    <div id="profile-reviews-wrap" style="margin-bottom:18px;"></div>
+    <div class="slabel">saved spots</div>
+    <div id="saved-grid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(135px,1fr));gap:7px;margin-bottom:18px;">
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);padding:8px 0;" id="saved-empty">nothing saved yet. go ask frank.</div>
+    </div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+      <div class="slabel" style="margin-bottom:0;">review photos</div>
+    </div>
+    <div id="photo-grid" style="display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-bottom:20px;">
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);padding:8px 0;grid-column:1/-1;" id="photo-empty-hint">photos you attach to ratings show here.</div>
+    </div>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<!-- NAV - pinned to bottom of viewport via .app-shell -->
+<div class="bottom-nav">
+  <button class="nav-tab active" id="tab-chat" onclick="switchTab('chat')"><span class="nav-icon">💬</span><span class="nav-label">ask frAnk</span></button>
+  <button class="nav-tab" id="tab-events" onclick="switchTab('events')"><span class="nav-icon">📅</span><span class="nav-label">events</span></button>
+  <button class="nav-tab" id="tab-explore" onclick="switchTab('explore')"><span class="nav-icon">✨</span><span class="nav-label">explore</span></button>
+  <button class="nav-tab" id="tab-profile" onclick="switchTab('profile')"><span class="nav-icon">👤</span><span class="nav-label">profile</span></button>
+</div>
+
+</div><!-- .app-shell -->
+
+<!-- EXPLORE list preview -->
+<div id="explore-preview-overlay" class="explore-preview-overlay" onclick="if(event.target===this)closeExplorePreview()">
+  <div class="explore-preview-panel" style="position:relative;" onclick="event.stopPropagation()">
+    <button type="button" class="explore-preview-close" onclick="closeExplorePreview()">close</button>
+    <div class="explore-preview-cover" id="explore-preview-cover-wrap"><img id="explore-preview-cover-img" src="" alt=""/></div>
+    <div class="explore-preview-head">
+      <div class="explore-preview-title" id="explore-preview-title"></div>
+      <div class="explore-preview-sub" id="explore-preview-by"></div>
+    </div>
+    <div class="explore-preview-scroll" id="explore-preview-spots"></div>
+    <div class="explore-preview-foot">
+      <button type="button" class="gbtn" style="width:100%;margin-bottom:10px;border-radius:8px;padding:10px;" onclick="openExploreCoverStudio()">cover art · presets, upload, or generate</button>
+      <button type="button" class="explore-copy-btn" onclick="openCopyExploreSheet()">copy to my lists</button>
+    </div>
+  </div>
+</div>
+
+<div id="explore-cover-modal-bg" class="explore-cover-modal-bg" onclick="if(event.target===this)closeExploreCoverStudio()">
+  <div class="explore-cover-panel" onclick="event.stopPropagation()">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;color:var(--forest);margin-bottom:4px;">list cover</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:12px;line-height:1.45;">pick a frAnk frame, upload a photo, or generate a two-color split tile (no gradients: just forest / lime / cream).</div>
+    <div class="slabel">presets</div>
+    <div class="explore-cover-grid" id="explore-cover-preset-grid"></div>
+    <div class="slabel">upload</div>
+    <input type="file" id="explore-cover-file" accept="image/*" style="font-family:'DM Mono',monospace;font-size:10px;width:100%;margin-bottom:12px;"/>
+    <div class="slabel">generate</div>
+    <div class="explore-cover-gen-row">
+      <input type="color" id="explore-cover-c1" value="#1c3a2a"/>
+      <input type="color" id="explore-cover-c2" value="#b8e832"/>
+      <button type="button" class="fbtn" style="padding:8px 14px;font-size:11px;" onclick="generateExplorePlaylistCover()">generate</button>
+    </div>
+    <button type="button" class="gbtn" style="width:100%;margin-top:14px;border-radius:8px;" onclick="closeExploreCoverStudio()">done</button>
+  </div>
+</div>
+
+<!-- Copy explore list → pick your folder -->
+<div id="copy-explore-overlay" class="sheet-overlay" onclick="if(event.target===this)closeCopyExploreSheet()"></div>
+<div id="copy-explore-sheet" class="sheet" aria-hidden="true">
+  <div class="sheet-inner">
+    <div class="sheet-grab"></div>
+    <div class="sheet-title">
+      <div class="sheet-title-left">
+        <div class="sheet-h">add to list</div>
+        <div class="sheet-sub" id="copy-explore-sub">pick a folder. all spots move there.</div>
+      </div>
+      <button type="button" class="sheet-close" onclick="closeCopyExploreSheet()">close</button>
+    </div>
+    <div class="sheet-list" id="copy-explore-list"></div>
+  </div>
+</div>
+
+<!-- FULL-SCREEN PLACE CARD MODAL -->
+<div id="full-card-modal">
+  <div class="fc-header">
+    <div class="fc-name" id="fc-name-display"></div>
+    <button type="button" class="fc-close" onclick="closeFullCard()">close</button>
+  </div>
+  <div class="fc-scroll" id="fc-scroll-body"></div>
+</div>
+
+<!-- RATE MODAL -->
+<div id="m-rate">
+  <div class="rate-sheet">
+    <div class="rate-title" id="rate-name"></div>
+    <div class="rate-sub">score each category. add a note if you want. photo optional.</div>
+    <div id="rate-rows"></div>
+    <div class="rate-notes-lbl">your thoughts</div>
+    <textarea id="rate-notes" class="rate-notes" placeholder="optional. one paragraph is enough." rows="3"></textarea>
+    <button class="rate-photo-btn" onclick="document.getElementById('rate-photo-input').click()">📷 upload a photo</button>
+    <input type="file" id="rate-photo-input" accept="image/*" style="display:none;" onchange="handleRatePhoto(this)"/>
+    <img id="rate-photo-preview" class="rate-photo-preview" alt=""/>
+    <div class="rate-post-row">
+      <button type="button" class="rate-post-btn rate-post-private" onclick="submitRate('private')">🔒 friends only</button>
+      <button type="button" class="rate-post-btn rate-post-public" onclick="submitRate('public')">🌐 everyone on frAnk</button>
+      <button type="button" class="rate-post-btn rate-post-draft" onclick="submitRate('draft')">save draft · finish later</button>
+    </div>
+    <button type="button" onclick="closeRateModal()" style="width:100%;margin-top:10px;padding:8px;background:transparent;border:none;font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);cursor:pointer;">cancel</button>
+  </div>
+</div>
+
+<!-- SHARE MODAL -->
+<div class="modal-bg" id="m-share">
+  <div class="modal-box">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:19px;text-transform:uppercase;color:var(--forest);margin-bottom:3px;">share it</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:14px;" id="share-name"></div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:12px;">
+      <button class="psm" style="border-radius:5px;padding:10px;" onclick="doShare('instagram')">📸 instagram</button>
+      <button class="psm" style="border-radius:5px;padding:10px;" onclick="doShare('stories')">⭕ stories</button>
+      <button class="psm" style="border-radius:5px;padding:10px;" onclick="doShare('link')">🔗 copy link</button>
+      <button class="psm" style="border-radius:5px;padding:10px;" onclick="doShare('friend')">💌 send to friend</button>
+    </div>
+    <button class="gbtn" style="width:100%;" onclick="closeModals()">cancel</button>
+  </div>
+</div>
+
+<!-- SETTINGS SHEET -->
+<div id="settings-sheet" style="display:none;position:fixed;inset:0;background:rgba(26,26,15,0.72);z-index:1300;align-items:flex-end;">
+  <div style="background:var(--cream);border-radius:14px 14px 0 0;width:100%;max-height:88%;display:flex;flex-direction:column;">
+    <div style="display:flex;justify-content:space-between;align-items:center;padding:16px 16px 0;flex-shrink:0;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;color:var(--forest);">settings</div>
+      <button onclick="closeSettings()" style="background:transparent;border:0.5px solid #c8c0ac;color:var(--ink-light);font-family:'DM Mono',monospace;font-size:10px;padding:5px 10px;cursor:pointer;border-radius:3px;">close</button>
+    </div>
+    <div style="display:flex;border-bottom:1px solid #ddd8cc;margin:12px 16px 0;flex-shrink:0;flex-wrap:wrap;gap:0;">
+      <button id="stab-account" onclick="switchSettingsTab('account')" style="font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;background:transparent;border:none;border-bottom:2px solid var(--forest);color:var(--forest);font-weight:500;cursor:pointer;margin-bottom:-1px;">account</button>
+      <button id="stab-privacy" onclick="switchSettingsTab('privacy')" style="font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--ink-ghost);cursor:pointer;margin-bottom:-1px;">preferences</button>
+      <button id="stab-notifs" onclick="switchSettingsTab('notifs')" style="font-family:'DM Mono',monospace;font-size:11px;padding:8px 12px;background:transparent;border:none;border-bottom:2px solid transparent;color:var(--ink-ghost);cursor:pointer;margin-bottom:-1px;">notifications</button>
+    </div>
+    <div style="overflow-y:auto;padding:14px 16px 24px;flex:1;">
+      <div id="stab-content-account">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:12px;line-height:1.5;">connect &amp; verify. account data stays on this device until you connect a backend.</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">email</div>
+            <input id="set-email" type="email" class="pinput" style="width:100%;box-sizing:border-box;" placeholder="you@example.com"/>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">phone</div>
+            <input id="set-phone" type="tel" class="pinput" style="width:100%;box-sizing:border-box;" placeholder="+1 (512) 000-0000"/>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">location</div>
+            <input id="set-location" type="text" class="pinput" style="width:100%;box-sizing:border-box;" placeholder="city · neighborhood"/>
+          </div>
+          <div>
+            <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">membership</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.12em;color:var(--forest);">MEMBER</div>
+          </div>
+        </div>
+        <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">social</div>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
+          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="toast('connect instagram: coming soon.')">📸 connect instagram</button>
+          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="toast('connect tiktok: coming soon.')">🎵 connect tiktok</button>
+        </div>
+        <button onclick="saveSettings()" style="background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:11px;cursor:pointer;border-radius:4px;width:100%;">save settings</button>
+      </div>
+      <div id="stab-content-privacy" style="display:none;">
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+          <label style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:0.5px solid #ddd8cc;border-radius:7px;padding:11px 12px;cursor:pointer;"><div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);">public profile</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:2px;">others can find and follow you</div></div><input id="set-pref-public" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--forest);flex-shrink:0;"/></label>
+          <label style="display:flex;align-items:center;justify-content:space-between;background:#fff;border:0.5px solid #ddd8cc;border-radius:7px;padding:11px 12px;cursor:pointer;"><div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);">share anonymous usage signals</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:2px;">helps frAnk learn which screens and flows work (no captions, no names, tied to your device until there is a backend).</div></div><input id="set-pref-insights" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--forest);flex-shrink:0;"/></label>
+        </div>
+        <button onclick="saveSettings()" style="background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:11px;cursor:pointer;border-radius:4px;width:100%;">save settings</button>
+      </div>
+      <div id="stab-content-notifs" style="display:none;">
+        <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:10px;line-height:1.45;">push notifications when the app has permission. toggles are saved on this device.</div>
+        <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
+          <label style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:#fff;border:0.5px solid #ddd8cc;border-radius:7px;padding:11px 12px;cursor:pointer;"><div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);">new places added</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:2px;line-height:1.35;">ping when a new spot is added to frAnk in Austin.</div></div><input id="set-notif-places" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--forest);flex-shrink:0;margin-top:2px;"/></label>
+          <label style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:#fff;border:0.5px solid #ddd8cc;border-radius:7px;padding:11px 12px;cursor:pointer;"><div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);">friend updates</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:2px;line-height:1.35;">ping when someone on your friend list posts a public review or list.</div></div><input id="set-notif-friends" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--forest);flex-shrink:0;margin-top:2px;"/></label>
+          <label style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;background:#fff;border:0.5px solid #ddd8cc;border-radius:7px;padding:11px 12px;cursor:pointer;"><div><div style="font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);">product updates</div><div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:2px;line-height:1.35;">heads-up when something new ships or a rough edge gets fixed.</div></div><input id="set-notif-beta" type="checkbox" checked style="width:16px;height:16px;accent-color:var(--forest);flex-shrink:0;margin-top:2px;"/></label>
+        </div>
+        <button onclick="saveSettings()" style="background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:11px;cursor:pointer;border-radius:4px;width:100%;">save settings</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<button type="button" onclick="triggerBetaFeedback()" aria-label="Send feedback" style="position:fixed;bottom:60px;right:16px;width:44px;height:44px;background:var(--lime);border:2px solid var(--forest);border-radius:50%;font-size:20px;z-index:100;box-shadow:0 4px 10px rgba(0,0,0,0.2);cursor:pointer;">💬</button>
+<div id="toast"></div>
+<input type="file" id="av-input" accept="image/*" style="display:none;" onchange="handleAv(this)"/>
+
+<div id="account-flyout" class="account-flyout" style="display:none;" onclick="event.stopPropagation()">
+  <button type="button" onclick="closeAccountFlyout();switchTab('profile');setTimeout(function(){document.getElementById('list-folders-wrap')?.scrollIntoView({behavior:'smooth',block:'start'});},120);">my lists</button>
+  <button type="button" onclick="closeAccountFlyout();switchTab('profile')">profile</button>
+  <button type="button" onclick="closeAccountFlyout();showSettings()">settings</button>
+  <button type="button" id="acct-change-photo" onclick="closeAccountFlyout();document.getElementById('av-input').click()">change photo</button>
+</div>
+
+<div id="list-folder-modal" class="modal-bg" onclick="if(event.target===this)closeListFolderModal()" style="z-index:420;">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:min(92vw,380px);max-height:78vh;display:flex;flex-direction:column;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:var(--forest);margin-bottom:8px;" id="list-folder-modal-title">list</div>
+    <div id="list-folder-modal-body" style="overflow-y:auto;flex:1;min-height:0;margin-bottom:12px;"></div>
+    <button type="button" class="gbtn" style="width:100%;" onclick="closeListFolderModal()">close</button>
+  </div>
+</div>
+
+<div id="unsaved-modal" class="modal-bg" onclick="if(event.target===this)closeUnsavedModal()">
+  <div class="modal-box" onclick="event.stopPropagation()">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:var(--forest);margin-bottom:6px;">unsaved changes</div>
+    <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);margin-bottom:16px;line-height:1.5;">save before you leave or lose what you typed.</div>
+    <div style="display:flex;flex-direction:column;gap:8px;">
+      <button type="button" class="fbtn" style="width:100%;" onclick="confirmSaveAndLeave()">save & leave</button>
+      <button type="button" class="gbtn" style="width:100%;" onclick="confirmDiscardProfile()">discard changes</button>
+      <button type="button" class="gbtn" style="width:100%;" onclick="closeUnsavedModal()">keep editing</button>
+    </div>
+  </div>
+</div>
+
+<!-- SAVE TO LIST SHEET -->
+<div class="sheet-overlay" id="save-sheet-overlay" onclick="closeSaveSheet()"></div>
+<div class="sheet" id="save-sheet" aria-hidden="true">
+  <div class="sheet-inner save-sheet-stage" role="dialog" aria-modal="true" aria-label="save to list">
+    <div class="sheet-grab"></div>
+    <div class="sheet-title">
+      <div class="sheet-title-left">
+        <div class="sheet-h save-sheet-h">save to list</div>
+        <div class="sheet-sub" id="save-sheet-place">...</div>
+      </div>
+      <button class="sheet-close" onclick="closeSaveSheet()">close</button>
+    </div>
+    <div id="save-sheet-create-wrap"></div>
+    <div class="sheet-list sheet-list-sticker" id="save-sheet-list"></div>
+    <div class="sheet-danger">
+      <button onclick="closeSaveSheet()">not now</button>
+      <button class="remove" id="save-sheet-remove" onclick="removeFromSaved()">remove</button>
+    </div>
+  </div>
+</div>
+
+<script type='module'>
+import { PLACES, QUOTES, EVENTS } from './dataManager.js';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js';
+const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
+const nd=new Date();const hk=`${nd.getMonth()+1}-${nd.getDate()}`;
+const DQ=HQ[hk]||QUOTES[nd.getDate()%QUOTES.length];
+
+// ── VIBE TAGS - short eyebrows for card thumbnails ────────────
+// derive a 1-2 word vibe tag from each place's category/tags
+function vibeTag(p){
+  const hints=(p.intentHints||[]).map(h=>String(h).toLowerCase());
+  if(hints.some(h=>h.includes('marg'))||(p.tags||[]).includes('margaritas'))return'MARGS';
+  if(p.cat==='Coffee')return'COFFEE';
+  if(p.cat==='Cocktails')return'COCKTAILS';
+  if(p.cat==='Dinner')return'DINNER';
+  if(p.cat==='Late Night')return'LATE NIGHT';
+  if(p.cat==='Quick Bite')return'QUICK BITE';
+  if((p.frank||'').toLowerCase().includes('rooftop'))return'ROOFTOP';
+  if((p.tags||[]).includes('outdoor')||(p.frank||'').toLowerCase().includes('patio'))return'PATIO';
+  if((p.tags||[]).includes('late night'))return'LATE NIGHT';
+  if((p.tags||[]).includes('brunch'))return'BRUNCH';
+  if((p.chips||[]).includes('date night'))return'DATE SPOT';
+  if((p.tags||[]).includes('austin institution'))return'INSTITUTION';
+  if(p.frank.includes('michelin'))return'MICHELIN';
+  if((p.tags||[]).includes('wine-forward'))return'WINE BAR';
+  if(p.frank.includes('taco')||p.frank.includes('taqueria'))return'TACOS';
+  if(p.frank.includes('brisket')||p.frank.includes('BBQ')||p.frank.includes('barbecue'))return'BBQ';
+  if(p.frank.includes('brunch'))return'BRUNCH';
+  if((p.tags||[]).includes('remote work'))return'WFH SPOT';
+  return'EAT + DRINK';
+}
+
+// ── frAnk SCORE - 5-point scales (simulated from place data) ───
+function frankScore(p){
+  return Math.min(5,Math.max(3,(p.rating*0.98)+0.02*((p.rc||0)%7))).toFixed(1);
+}
+/** Web aggregate - normalized to 5-point scale. */
+function webReviewScore(p){
+  const r=p.rating||4.2;
+  const j=((p.rc||0)%17)*0.04;
+  return Math.min(5,Math.max(3,r+j*0.08)).toFixed(1);
+}
+/** Per-place image URLs (picsum seeds = unique look per spot, higher res). */
+function placeThumbUrl(p){return`https://picsum.photos/seed/frankthumb${p.id}/800/640`;}
+function placeGalleryUrls(p){
+  return[
+    `https://picsum.photos/seed/frankspot${p.id}a/1400/900`,
+    `https://picsum.photos/seed/frankspot${p.id}b/1400/900`,
+    `https://picsum.photos/seed/frankspot${p.id}c/1400/900`
+  ];
+}
+function friendReviewsHTML(p){
+  const rows=[
+    {name:'MIA',friend:true,stars:Math.min(5,4+(p.id%2)),text:'would drag my whole group here again. no notes.'},
+    {name:'JORDAN',friend:true,stars:5,text:'worth the parking situation. that is the whole review.'},
+    {name:'riley',friend:false,stars:3+((p.id%3)%3),text:'solid. not life-changing. still showed up twice.'}
+  ];
+  rows.sort((a,b)=>b.friend-a.friend);
+  return rows.map(r=>`<div class="fc-review-card">
+    <div class="fc-review-head">
+      <span class="fc-review-name">${r.name}</span>
+      ${r.friend?'<span class="fc-review-badge">frank friend</span>':''}
+      <span class="fc-review-stars">${'★'.repeat(r.stars)}${'☆'.repeat(5-r.stars)}</span>
+    </div>
+    <div class="fc-review-text">${r.text.replace(/</g,'&lt;')}</div>
+  </div>`).join('');
+}
+function wireFullCardCarousel(){
+  const car=document.getElementById('fc-carousel');
+  if(!car)return;
+  const wrap=car.closest('.fc-carousel-wrap');
+  const dots=wrap?wrap.querySelectorAll('.fc-carousel-dot'):[];
+  const prev=wrap?wrap.querySelector('.fc-carousel-prev'):null;
+  const next=wrap?wrap.querySelector('.fc-carousel-next'):null;
+  function slideW(){return car.offsetWidth||car.clientWidth||1;}
+  function sync(){
+    const w=slideW();
+    const i=Math.round(car.scrollLeft/w);
+    dots.forEach((d,j)=>d.classList.toggle('on',j===i));
+  }
+  car.addEventListener('scroll',sync,{passive:true});
+  dots.forEach((d,i)=>{d.onclick=()=>{car.scrollTo({left:i*slideW(),behavior:'smooth'});};});
+  if(prev)prev.onclick=()=>car.scrollBy({left:-slideW(),behavior:'smooth'});
+  if(next)next.onclick=()=>car.scrollBy({left:slideW(),behavior:'smooth'});
+  sync();
+}
+
+const PLACE_IDS=new Set(PLACES.map(p=>p.id));
+const _svgU=s=>`data:image/svg+xml,${encodeURIComponent(s)}`;
+/** Eight frAnk-branded cover tiles (SVG). */
+const EXPLORE_COVER_PRESETS=[
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#1c3a2a" width="160" height="320"/><rect fill="#b8e832" x="160" width="160" height="320"/><rect fill="#f5f0e8" x="40" y="240" width="240" height="10"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#b8e832" width="320" height="160"/><rect fill="#1c3a2a" y="160" width="320" height="160"/><circle cx="80" cy="80" r="36" fill="#1c3a2a"/><circle cx="240" cy="240" r="44" fill="#b8e832"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#f5f0e8" width="320" height="320"/><rect fill="#1c3a2a" x="0" y="0" width="320" height="96"/><rect fill="#1c3a2a" x="0" y="224" width="320" height="96"/><rect fill="#b8e832" x="32" y="120" width="256" height="80" rx="4"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#1c3a2a" width="320" height="320"/><g fill="#b8e832"><circle cx="70" cy="70" r="28"/><circle cx="250" cy="70" r="28"/><circle cx="160" cy="160" r="52"/><rect x="0" y="260" width="320" height="60"/></g></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#ede6d6" width="320" height="320"/><rect fill="#1c3a2a" x="48" y="48" width="224" height="224"/><rect fill="#b8e832" x="96" y="96" width="128" height="128"/><rect fill="#f5f0e8" x="136" y="136" width="48" height="48"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#1c3a2a" width="320" height="320"/><g fill="#b8e832"><rect x="0" y="200" width="320" height="24"/><rect x="0" y="240" width="260" height="18"/><rect x="0" y="272" width="200" height="14"/></g><rect fill="#f5f0e8" x="220" y="40" width="56" height="120"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#1c3a2a" width="160" height="160"/><rect fill="#b8e832" x="160" width="160" height="160"/><rect fill="#f5f0e8" x="0" y="160" width="160" height="160"/><rect fill="#2d5a40" x="160" y="160" width="160" height="160"/></svg>'),
+  _svgU('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320"><rect fill="#b8e832" width="320" height="320"/><path fill="#1c3a2a" d="M0 0 L320 0 L0 320 Z"/><rect fill="#f5f0e8" x="40" y="200" width="240" height="8" transform="rotate(-8 160 204)"/></svg>')
+];
+/** Simulated public lists from other members (explore feed). */
+const GLOBAL_EXPLORE_LISTS=[
+  {id:'gx1',title:"Austin's Only Good Bagels",creator:'FRANCESCA',placeIds:[107,104,143],coverIndex:0},
+  {id:'gx2',title:'Post-Breakup Dive Bars',creator:'MARCO',placeIds:[133,105,141],coverIndex:1},
+  {id:'gx3',title:'The Line Was Worth It',creator:'ELI',placeIds:[137,139,146],coverIndex:2},
+  {id:'gx4',title:'Tacos With No Exit Strategy',creator:'SANTI',placeIds:[110,136,117,131],coverIndex:3},
+  {id:'gx5',title:'Outdoor Tables, Zero Agenda',creator:'RIVER',placeIds:[101,122,140],coverIndex:4},
+  {id:'gx6',title:'Bib Gourmand Field Trip',creator:'NINA',placeIds:[110,136,131,132],coverIndex:5},
+  {id:'gx7',title:'Open Until Someone Says Stop',creator:'JULES',placeIds:[116,117,103],coverIndex:6},
+  {id:'gx8',title:'Rainey St. If You Must',creator:'DEV',placeIds:[106,144,125],coverIndex:7}
+];
+let EXPLORE_ACTIVE_ID=null;
+const FRANK_LS_KEY='frank-app-state-v1';
+const DEFAULT_LIST_NAMES=['Morning Rituals','Late Night Moves','The Vault'];
+function listDisplayName(nm){
+  if(nm==='Late Night Moves')return 'Late Night';
+  return nm;
+}
+function listFolderEmoji(nm){
+  if(nm==='Morning Rituals')return'☕';
+  if(nm==='Late Night Moves')return'🌙';
+  if(nm==='The Vault')return'🔐';
+  return'📋';
+}
+function getAllListNames(){
+  ensureLists();
+  const keys=Object.keys(S.lists||{});
+  const custom=keys.filter(k=>DEFAULT_LIST_NAMES.indexOf(k)<0).sort((a,b)=>a.localeCompare(b));
+  return DEFAULT_LIST_NAMES.filter(k=>keys.indexOf(k)>=0).concat(custom);
+}
+let pendingTab=null;
+
+const CE={'Coffee':'☕','Cocktails':'🍸','Dinner':'🍽️','Late Night':'🌙','Quick Bite':'🌮','patios + rooftops':'🌆','music':'🎶','brunch':'🥂'};
+const CI={'Coffee':'coffee-first spots: morning fuel, not a full bar night.','Cocktails':'drinks-led: bars, wine bars, cocktail rooms.','Dinner':'sit-down meals worth planning around.','Late Night':'open late, after-hours, dives, midnight food.','Quick Bite':'trucks, counters, bbq lines, fast tacos. get in and out.','dive bars':'dive-bar energy: dark, casual, and actually welcoming after-hours.','outdoors':'outdoor tables and fresh air: patios, gardens, and anywhere you can breathe.','wellness':'wellness-friendly spots: sober-friendly, balanced, and feel-good food.','patios + rooftops':'rooftops + patios: outside air, sometimes a view.','music':'where live music shows up in the room.','brunch':'day drinking adjacent: brunch energy.'};
+const PI={'dogs welcome':'bring the dog. all confirmed welcome.','date night':'somewhere worth making a reservation for.','survive the night':'open late. no questions asked.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
+
+let S={saved:[],lists:{'Morning Rituals':[], 'Late Night Moves':[], 'The Vault':[]},listPrivacy:{'Morning Rituals':'public','Late Night Moves':'public','The Vault':'public'},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
+let SAVE_SHEET={open:false,placeId:null};
+
+function resolveExploreCoverUrl(listId,defaultIdx){
+  if(!S.exploreListCovers)S.exploreListCovers={};
+  const raw=S.exploreListCovers[listId];
+  const d=typeof defaultIdx==='number'?defaultIdx:0;
+  if(!raw)return EXPLORE_COVER_PRESETS[d%EXPLORE_COVER_PRESETS.length];
+  if(typeof raw==='string'&&raw.startsWith('preset:'))return EXPLORE_COVER_PRESETS[parseInt(raw.slice(7),10)%EXPLORE_COVER_PRESETS.length];
+  return raw;
+}
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.style.display='block';setTimeout(()=>t.style.display='none',2200);}
+
+function spotCountLabel(n){
+  const x=Math.max(0,Number(n)||0);
+  return x===1?'1 SPOT':`${x} SPOTS`;
+}
+function sanitizePlaceIds(arr){return(Array.isArray(arr)?arr:[]).filter(id=>PLACE_IDS.has(id));}
+function ensureListPrivacy(){
+  ensureLists();
+  if(!S.listPrivacy||typeof S.listPrivacy!=='object')S.listPrivacy={};
+  Object.keys(S.lists).forEach(nm=>{if(S.listPrivacy[nm]!=='private'&&S.listPrivacy[nm]!=='public')S.listPrivacy[nm]='public';});
+}
+function findListForPlaceId(id){
+  ensureLists();
+  const names=getAllListNames();
+  for(let i=0;i<names.length;i++){
+    const nm=names[i];
+    if((S.lists[nm]||[]).includes(id))return nm;
+  }
+  return null;
+}
+function placeVisibleOnProfile(id){
+  ensureListPrivacy();
+  return true;
+}
+function setListPrivacy(nm,isPrivate){
+  ensureListPrivacy();
+  if(!S.lists||!(nm in S.lists))return;
+  S.listPrivacy[nm]=isPrivate?'private':'public';
+  markProfileDirty();
+  renderSavedGrid();
+}
+function reconcileSavedFromLists(){
+  ensureLists();
+  const seen=new Set();
+  Object.keys(S.lists).forEach(nm=>{(S.lists[nm]||[]).forEach(id=>{if(PLACE_IDS.has(id))seen.add(id);});});
+  seen.forEach(id=>{if(!S.saved.includes(id))S.saved.push(id);});
+}
+
+function persistFrankState(){
+  try{
+    const pn=document.getElementById('p-name');
+    ensureListPrivacy();
+    const data={
+      name:pn?pn.value.trim():'',
+      saved:sanitizePlaceIds(S.saved.slice()),
+      lists:{},
+      listPrivacy:{...S.listPrivacy},
+      reviews:S.reviews|0,
+      reviewPhotos:Array.isArray(S.reviewPhotos)?S.reviewPhotos.map(ph=>({src:ph.src,placeId:ph.placeId||null,pub:ph.pub!==false})):[],
+      avatarUrl:S.avatarUrl||null,
+      account:{...S.account},
+      savedEvents:Array.isArray(S.savedEvents)?S.savedEvents.slice():[],
+      rateDrafts:Array.isArray(S.rateDrafts)?S.rateDrafts.map(d=>({placeId:d.placeId,catRatings:d.catRatings||{},notes:d.notes||'',photo:d.photo||null,updated:d.updated||Date.now()})):[],
+      postedReviews:Array.isArray(S.postedReviews)?S.postedReviews.map(r=>({placeId:r.placeId,visibility:r.visibility,catRatings:r.catRatings||{},notes:r.notes||'',photo:r.photo||null,at:r.at||Date.now()})):[],
+      onboarded:localStorage.getItem('frank-onboarded')==='1',
+      exploreListCovers:{...(S.exploreListCovers||{})},
+      prefs:{...(S.prefs||{})},
+      vibeSel:[],
+      dietarySel:[]
+    };
+    const vWrap=document.getElementById('profile-vibe-pills');
+    const dWrap=document.getElementById('profile-diet-pills');
+    if(vWrap)vWrap.querySelectorAll('.vpill.active').forEach(b=>{data.vibeSel.push(b.textContent.trim());});
+    if(dWrap)dWrap.querySelectorAll('.dpill.active').forEach(b=>{data.dietarySel.push(b.textContent.trim());});
+    ensureLists();
+    Object.keys(S.lists).forEach(nm=>{data.lists[nm]=sanitizePlaceIds((S.lists[nm]||[]).slice());});
+    localStorage.setItem(FRANK_LS_KEY,JSON.stringify(data));
+  }catch(e){/* quota or stringify */}
+}
+
+function loadFrankState(){
+  try{
+    const raw=localStorage.getItem(FRANK_LS_KEY);
+    if(!raw){renderSavedGrid();renderPhotoGrid();renderRatingDrafts();renderProfileReviews();applyAvatarEverywhere();return;}
+    const data=JSON.parse(raw);
+    ensureLists();
+    if(data.lists&&typeof data.lists==='object'){
+      Object.keys(data.lists).forEach(k=>{
+        if(!S.lists[k])S.lists[k]=[];
+        S.lists[k]=sanitizePlaceIds(data.lists[k]);
+      });
+    }
+    if(Array.isArray(data.saved))S.saved=sanitizePlaceIds(data.saved);
+    reconcileSavedFromLists();
+    if(typeof data.reviews==='number'&&!Number.isNaN(data.reviews))S.reviews=data.reviews;
+    if(Array.isArray(data.reviewPhotos))S.reviewPhotos=data.reviewPhotos.filter(ph=>ph&&ph.src).map(ph=>({src:ph.src,placeId:ph.placeId||null,pub:ph.pub!==false}));
+    else if(Array.isArray(data.photos)&&data.photos.length)S.reviewPhotos=data.photos.filter(ph=>ph&&ph.src).map(ph=>({src:ph.src,placeId:null,pub:ph.pub!==false}));
+    else S.reviewPhotos=[];
+    if(Array.isArray(data.rateDrafts))S.rateDrafts=data.rateDrafts.filter(d=>d&&PLACE_IDS.has(d.placeId)).map(d=>({placeId:d.placeId,catRatings:d.catRatings||{},notes:d.notes||'',photo:d.photo||null,updated:d.updated||Date.now()}));
+    else S.rateDrafts=[];
+    if(Array.isArray(data.postedReviews))S.postedReviews=data.postedReviews.filter(r=>r&&PLACE_IDS.has(r.placeId));
+    else S.postedReviews=[];
+    if(data.listPrivacy&&typeof data.listPrivacy==='object')Object.keys(data.listPrivacy).forEach(nm=>{if(data.listPrivacy[nm]==='private'||data.listPrivacy[nm]==='public')S.listPrivacy[nm]=data.listPrivacy[nm];});
+    if(typeof data.avatarUrl==='string')S.avatarUrl=data.avatarUrl;
+    if(data.account&&typeof data.account==='object')S.account={...S.account,...data.account};
+    if(S.account.membership&&/V0|founding|beta member/i.test(String(S.account.membership)))S.account.membership='Member';
+    if('travelMode' in S.account)delete S.account.travelMode;
+    if(data.prefs&&typeof data.prefs==='object')S.prefs={...S.prefs,...data.prefs};
+    if(Array.isArray(data.savedEvents))S.savedEvents=data.savedEvents.filter(se=>se&&se.eventId);
+    else S.savedEvents=[];
+    ensureListPrivacy();
+    if(data.exploreListCovers&&typeof data.exploreListCovers==='object')S.exploreListCovers={...data.exploreListCovers};
+    const name=(typeof data.name==='string')?data.name:'';
+    const pn=document.getElementById('p-name');
+    if(pn)pn.value=name;
+    updateInit();
+    const vs=Array.isArray(data.vibeSel)?data.vibeSel:[];
+    const ds=Array.isArray(data.dietarySel)?data.dietarySel:[];
+    document.querySelectorAll('#profile-vibe-pills .vpill').forEach(b=>{b.classList.toggle('active',vs.indexOf(b.textContent.trim())>=0);});
+    document.querySelectorAll('#profile-diet-pills .dpill').forEach(b=>{b.classList.toggle('active',ds.indexOf(b.textContent.trim())>=0);});
+    syncHeaderAvatar();
+    const stP=document.getElementById('st-photos');
+    if(stP)stP.textContent=S.reviewPhotos.length;
+    if(localStorage.getItem('frank-onboarded')==='1'&&(name||data.onboarded)){
+      const ob=document.getElementById('onboarding');
+      if(ob)ob.style.display='none';
+    }
+    renderSavedGrid();
+    renderPhotoGrid();
+    renderRatingDrafts();
+    renderProfileReviews();
+    applyAvatarEverywhere();
+  }catch(e){renderSavedGrid();renderPhotoGrid();renderRatingDrafts();renderProfileReviews();}
+}
+
+function openListFolderModal(nm){
+  ensureLists();
+  const ids=sanitizePlaceIds(S.lists[nm]||[]);
+  const titleEl=document.getElementById('list-folder-modal-title');
+  const bodyEl=document.getElementById('list-folder-modal-body');
+  if(!titleEl||!bodyEl)return;
+  titleEl.textContent=listDisplayName(nm);
+  bodyEl.innerHTML=ids.length?ids.map(id=>{
+    const p=PLACES.find(x=>x.id===id);
+    if(!p)return'';
+    const safe=p.name.replace(/</g,'&lt;');
+    return`<button type="button" style="display:block;width:100%;text-align:left;padding:10px 8px;border:none;border-bottom:1px solid #ddd8cc;background:#fff;font-family:'DM Mono',monospace;font-size:11px;color:var(--forest);cursor:pointer;" onclick="closeListFolderModal();openFullCard(${id})">${safe}</button>`;
+  }).join(''):'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--ink-ghost);padding:8px 0;">no spots in this list yet.</div>';
+  document.getElementById('list-folder-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeListFolderModal(){
+  const m=document.getElementById('list-folder-modal');
+  if(m)m.classList.remove('open');
+  if(!document.getElementById('copy-explore-sheet')?.classList.contains('open')&&!document.getElementById('explore-preview-overlay')?.classList.contains('open')&&!document.getElementById('explore-cover-modal-bg')?.classList.contains('open')&&!SAVE_SHEET.open)document.body.style.overflow='';
+}
+function renderListFolders(){
+  ensureLists();ensureListPrivacy();
+  const wrap=document.getElementById('list-folders-wrap');
+  if(!wrap)return;
+  const visible=getAllListNames();
+  wrap.innerHTML=visible.map(nm=>{
+    const ids=sanitizePlaceIds(S.lists[nm]||[]);
+    const c=ids.length;
+    const first=c?PLACES.find(x=>x.id===ids[0]):null;
+    const safe=listDisplayName(nm).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const isPriv=S.listPrivacy[nm]==='private';
+    const esc=nm.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
+    const icon=isPriv
+      ?'<span class="list-privacy-ico priv" title="private">🔒</span>'
+      :'<span class="list-privacy-ico pub" title="public">🌐</span>';
+    const thumb=first?`<div class="list-folder-visual"><img src="${placeThumbUrl(first).replace(/"/g,'&quot;')}" alt=""/></div>`:`<div class="list-folder-visual" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--forest) 0%,var(--forest-mid) 100%);"><span style="font-size:30px;line-height:1;" aria-hidden="true">${listFolderEmoji(nm)}</span></div>`;
+    const row=`<div class="list-privacy-row" onclick="event.stopPropagation();">${icon}<div class="priv-toggle"><button type="button" class="${!isPriv?'on':''}" onclick="setListPrivacy('${esc}',false)">public</button><button type="button" class="${isPriv?'on':''}" onclick="setListPrivacy('${esc}',true)">private</button></div></div>`;
+    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);">${spotCountLabel(c)}</div>${row}</div></div>`;
+  }).join('');
+}
+
+function switchTab(t){
+  const prof=document.getElementById('screen-profile');
+  if(prof&&prof.classList.contains('active')&&t!=='profile'&&S.profileDirty){
+    pendingTab=t;
+    document.getElementById('unsaved-modal').classList.add('open');
+    return;
+  }
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('screen-'+t).classList.add('active');
+  const tab=document.getElementById('tab-'+t);
+  if(tab)tab.classList.add('active');
+  syncHeaderAvatar();
+  if(t==='profile'){renderSavedGrid();renderPhotoGrid();renderRatingDrafts();renderProfileReviews();}
+  if(t==='events'){renderEventsTab();}
+  if(t==='explore'){renderExploreFeed();}
+}
+
+function tryLeaveProfile(){
+  if(S.profileDirty){
+    const m=document.getElementById('unsaved-modal');
+    if(!m.classList.contains('open'))pendingTab='chat';
+    m.classList.add('open');
+    return;
+  }
+  switchTab('chat');
+}
+function closeUnsavedModal(){document.getElementById('unsaved-modal').classList.remove('open');pendingTab=null;}
+function confirmSaveAndLeave(){
+  saveProf();
+  document.getElementById('unsaved-modal').classList.remove('open');
+  const go=pendingTab||'chat';
+  pendingTab=null;
+  switchTab(go);
+}
+function confirmDiscardProfile(){
+  S.profileDirty=false;
+  loadFrankState();
+  document.getElementById('unsaved-modal').classList.remove('open');
+  const go=pendingTab||'chat';
+  pendingTab=null;
+  switchTab(go);
+}
+function markProfileDirty(){S.profileDirty=true;}
+
+function renderExploreFeed(){
+  const el=document.getElementById('explore-feed');
+  if(!el)return;
+  el.innerHTML=GLOBAL_EXPLORE_LISTS.map(L=>{
+    const ids=sanitizePlaceIds(L.placeIds);
+    const n=ids.length;
+    const safeTitle=L.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const safeCreator=L.creator.replace(/&/g,'&amp;').replace(/</g,'&lt;');
+    const cov=resolveExploreCoverUrl(L.id,L.coverIndex||0).replace(/"/g,'&quot;');
+    return`<button type="button" class="explore-feed-card fu" onclick="openExplorePreview('${L.id}')">
+      <div class="explore-card-cover"><img src="${cov}" alt="" loading="lazy"/></div>
+      <div class="explore-card-body">
+        <span class="explore-card-sticker" aria-hidden="true">✨</span>
+        <div class="explore-card-title">${safeTitle}</div>
+        <div class="explore-card-by"><span style="letter-spacing:0.06em;">BY:</span> ${safeCreator}</div>
+        <div class="explore-card-meta">${spotCountLabel(n)}</div>
+      </div>
+    </button>`;
+  }).join('');
+}
+
+function openExplorePreview(listId){
+  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===listId);
+  if(!L)return;
+  EXPLORE_ACTIVE_ID=listId;
+  const ids=sanitizePlaceIds(L.placeIds);
+  document.getElementById('explore-preview-title').textContent=L.title;
+  document.getElementById('explore-preview-by').textContent=`BY: ${L.creator} · ${spotCountLabel(ids.length)}`;
+  const cimg=document.getElementById('explore-preview-cover-img');
+  if(cimg)cimg.src=resolveExploreCoverUrl(L.id,L.coverIndex||0);
+  const spotEl=document.getElementById('explore-preview-spots');
+  spotEl.innerHTML=ids.map(id=>{
+    const p=PLACES.find(x=>x.id===id);
+    if(!p)return'';
+    const fs=frankScore(p);
+    const ws=webReviewScore(p);
+    const raw=(p.frank||'').replace(/\s+/g,' ').trim();
+    const note=raw.length>160?raw.slice(0,157)+'…':raw;
+    const noteHtml=note?`<div class="explore-spot-note">${note.replace(/</g,'&lt;')}</div>`:'';
+    const gal=placeGalleryUrls(p);
+    const extra=gal[0]?`<img class="explore-spot-thumb explore-spot-extra" src="${gal[0].replace(/"/g,'&quot;')}" alt="" loading="lazy" onerror="this.style.display='none'"/>`:'';
+    return`<div class="explore-spot-row" onclick="openFullCard(${p.id})">
+      <div class="explore-spot-media">
+        <img class="explore-spot-thumb" src="${placeThumbUrl(p)}" alt="" loading="lazy" onerror="this.style.opacity=0"/>
+        ${extra}
+      </div>
+      <div style="min-width:0;flex:1;">
+        <div class="explore-spot-name">${p.name.replace(/</g,'&lt;')}</div>
+        <div class="explore-spot-meta">${p.hood} · ${CE[p.cat]||''}</div>
+        <div class="explore-spot-scores"><span>frAnk ${fs} ★</span><span>web ${ws} ★</span></div>
+        ${noteHtml}
+      </div>
+    </div>`;
+  }).join('');
+  document.getElementById('explore-preview-overlay').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+
+function closeExplorePreview(){
+  document.getElementById('explore-preview-overlay').classList.remove('open');
+  EXPLORE_ACTIVE_ID=null;
+  const copyOpen=document.getElementById('copy-explore-sheet')?.classList.contains('open');
+  const coverOpen=document.getElementById('explore-cover-modal-bg')?.classList.contains('open');
+  if(!copyOpen&&!SAVE_SHEET.open&&!coverOpen)document.body.style.overflow='';
+}
+
+function fillExploreCoverPresetGrid(){
+  const g=document.getElementById('explore-cover-preset-grid');
+  if(!g)return;
+  g.innerHTML=EXPLORE_COVER_PRESETS.map((url,i)=>`<button type="button" class="explore-cover-opt" onclick="applyExploreCoverPreset(${i})"><img src="${url.replace(/"/g,'&quot;')}" alt="preset ${i+1}"/></button>`).join('');
+}
+function syncExploreCoverSelectionHighlight(){
+  const id=EXPLORE_ACTIVE_ID;
+  if(!id)return;
+  const raw=S.exploreListCovers?.[id];
+  let sel=-1;
+  if(typeof raw==='string'&&raw.startsWith('preset:'))sel=parseInt(raw.slice(7),10);
+  document.querySelectorAll('#explore-cover-preset-grid .explore-cover-opt').forEach((btn,i)=>{btn.classList.toggle('on',sel===i);});
+}
+function openExploreCoverStudio(){
+  if(!EXPLORE_ACTIVE_ID){toast('open a list first.');return;}
+  fillExploreCoverPresetGrid();
+  syncExploreCoverSelectionHighlight();
+  const bg=document.getElementById('explore-cover-modal-bg');
+  if(bg)bg.classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeExploreCoverStudio(){
+  const bg=document.getElementById('explore-cover-modal-bg');
+  if(bg)bg.classList.remove('open');
+  const copyOpen=document.getElementById('copy-explore-sheet')?.classList.contains('open');
+  const exOpen=document.getElementById('explore-preview-overlay')?.classList.contains('open');
+  if(!copyOpen&&!exOpen&&!SAVE_SHEET.open)document.body.style.overflow='';
+}
+function applyExploreCoverPreset(i){
+  if(!EXPLORE_ACTIVE_ID)return;
+  if(!S.exploreListCovers)S.exploreListCovers={};
+  S.exploreListCovers[EXPLORE_ACTIVE_ID]='preset:'+i;
+  persistFrankState();
+  renderExploreFeed();
+  const img=document.getElementById('explore-preview-cover-img');
+  if(img)img.src=EXPLORE_COVER_PRESETS[i];
+  syncExploreCoverSelectionHighlight();
+  toast('cover updated.');
+}
+function generateExplorePlaylistCover(){
+  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
+  if(!L)return;
+  const c1=document.getElementById('explore-cover-c1')?.value||'#1c3a2a';
+  const c2=document.getElementById('explore-cover-c2')?.value||'#b8e832';
+  const cv=document.createElement('canvas');
+  cv.width=512;cv.height=512;
+  const x=cv.getContext('2d');
+  x.fillStyle=c1;x.fillRect(0,0,512,260);
+  x.fillStyle=c2;x.fillRect(0,260,512,252);
+  x.fillStyle='#1c3a2a';x.fillRect(0,368,512,144);
+  const title=L.title.length>48?L.title.slice(0,45)+'…':L.title;
+  const fs=title.length>34?22:30;
+  x.fillStyle='#f5f0e8';x.font=`800 ${fs}px Barlow Condensed, system-ui, sans-serif`;x.textAlign='center';
+  x.fillText(title,256,210);
+  x.fillStyle='#b8e832';x.font='600 12px "DM Mono", monospace';x.fillText('frAnk · public list',256,456);
+  const data=cv.toDataURL('image/png');
+  if(!S.exploreListCovers)S.exploreListCovers={};
+  S.exploreListCovers[EXPLORE_ACTIVE_ID]=data;
+  persistFrankState();
+  renderExploreFeed();
+  const img=document.getElementById('explore-preview-cover-img');
+  if(img)img.src=data;
+  toast('generated cover saved.');
+}
+function onExploreCoverFile(ev){
+  const f=ev.target&&ev.target.files&&ev.target.files[0];
+  if(!f||!EXPLORE_ACTIVE_ID)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    if(!S.exploreListCovers)S.exploreListCovers={};
+    S.exploreListCovers[EXPLORE_ACTIVE_ID]=e.target.result;
+    persistFrankState();
+    renderExploreFeed();
+    const img=document.getElementById('explore-preview-cover-img');
+    if(img)img.src=e.target.result;
+    toast('photo set as cover.');
+  };
+  r.readAsDataURL(f);
+  ev.target.value='';
+}
+
+function openCopyExploreSheet(){
+  if(!EXPLORE_ACTIVE_ID)return;
+  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
+  if(!L)return;
+  const ids=sanitizePlaceIds(L.placeIds);
+  const n=ids.length;
+  const sub=document.getElementById('copy-explore-sub');
+  if(sub)sub.textContent=`${n} spot${n===1?'':'s'} · pick a folder`;
+  const listEl=document.getElementById('copy-explore-list');
+  ensureLists();
+  listEl.innerHTML=getAllListNames().map(nm=>{
+    const count=(S.lists[nm]||[]).length;
+    const sticker=(listDisplayName(nm).trim()[0]||'L').toUpperCase();
+    const displaySafe=listDisplayName(nm).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+    const safeClick=nm.replace(/'/g,"\\'");
+    return`<div class="sheet-item" onclick="copyExploreToMyList('${safeClick}')">
+      <div class="sheet-item-left">
+        <div class="sheet-sticker">${sticker}</div>
+        <div style="min-width:0;">
+          <div class="sheet-item-name">${displaySafe}</div>
+          <div class="sheet-item-meta">${count} spot${count===1?'':'s'}</div>
+        </div>
+      </div>
+      <div class="sheet-check">add all</div>
+    </div>`;
+  }).join('');
+  document.getElementById('copy-explore-overlay').classList.add('open');
+  const sheet=document.getElementById('copy-explore-sheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+
+function closeCopyExploreSheet(){
+  document.getElementById('copy-explore-overlay').classList.remove('open');
+  const sheet=document.getElementById('copy-explore-sheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden','true');
+  if(!document.getElementById('explore-preview-overlay').classList.contains('open')&&!SAVE_SHEET.open&&!document.getElementById('explore-cover-modal-bg')?.classList.contains('open'))document.body.style.overflow='';
+}
+
+function copyExploreToMyList(listName){
+  if(!EXPLORE_ACTIVE_ID)return;
+  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
+  if(!L)return;
+  const ids=sanitizePlaceIds(L.placeIds);
+  if(!ids.length){closeCopyExploreSheet();return;}
+  ensureLists();
+  ids.forEach(id=>{
+    if(!S.saved.includes(id))S.saved.push(id);
+    Object.keys(S.lists).forEach(nm=>{S.lists[nm]=(S.lists[nm]||[]).filter(x=>x!==id);});
+    if(!Array.isArray(S.lists[listName]))S.lists[listName]=[];
+    if(!S.lists[listName].includes(id))S.lists[listName].push(id);
+  });
+  ids.forEach(id=>syncSaveButtons(id));
+  persistFrankState();
+  renderSavedGrid();
+  closeCopyExploreSheet();
+  closeExplorePreview();
+  toast(`stole ${ids.length} spot${ids.length===1?'':'s'} · ${listName.toLowerCase()}`);
+}
+
+let liveEventFilter='all';
+let liveFilterQuery='';
+function setLiveFilter(btn,mode){
+  document.querySelectorAll('.live-chip').forEach(c=>c.classList.toggle('on',c.getAttribute('data-live-filter')===mode));
+  liveEventFilter=mode;
+  renderEventsTab();
+}
+function filterLiveEvents(){
+  liveFilterQuery=(document.getElementById('live-event-search')?.value||'').trim().toLowerCase();
+  renderEventsTab();
+}
+function parseEventSortKey(sk){
+  if(!sk)return null;
+  const d=new Date(sk+'T12:00:00');
+  return isNaN(d.getTime())?null:d;
+}
+function eventMatchesFilter(e){
+  if(liveFilterQuery){
+    const hay=(e.name+' '+e.type+' '+e.frank).toLowerCase();
+    if(!hay.includes(liveFilterQuery))return false;
+  }
+  const ed=parseEventSortKey(e.sortKey);
+  const now=new Date();
+  const todayStart=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const tomorrow=new Date(todayStart.getTime()+86400000);
+  const weekEnd=new Date(todayStart);
+  weekEnd.setDate(weekEnd.getDate()+7);
+  if(liveEventFilter==='all')return true;
+  if(!ed)return true;
+  if(liveEventFilter==='tonight')return ed>=todayStart&&ed<tomorrow;
+  if(liveEventFilter==='week')return ed>=todayStart&&ed<weekEnd;
+  return true;
+}
+function getSavedEventRow(evId){
+  return(S.savedEvents||[]).find(x=>x&&x.eventId===evId);
+}
+function ensureSavedEvent(evId){
+  S.savedEvents=S.savedEvents||[];
+  let row=S.savedEvents.find(x=>x.eventId===evId);
+  if(!row){
+    row={eventId:evId,saved:true,rsvp:false,calPublic:true};
+    S.savedEvents.push(row);
+  }
+  return row;
+}
+function toggleEventSaved(evId){
+  const cur=getSavedEventRow(evId);
+  if(cur)S.savedEvents=S.savedEvents.filter(x=>x.eventId!==evId);
+  else ensureSavedEvent(evId);
+  persistFrankState();
+  renderEventsTab();
+}
+function toggleEventRsvp(evId){
+  const ev=EVENTS.find(x=>x.id===evId);
+  const row=ensureSavedEvent(evId);
+  row.rsvp=!row.rsvp;
+  persistFrankState();
+  renderEventsTab();
+  // Only deep-link if we have a real event/ticket URL.
+  if(row.rsvp && ev && ev.rsvpUrl){
+    window.open(ev.rsvpUrl,'_blank');
+  }
+}
+function toggleEventCalPublic(evId){
+  const row=ensureSavedEvent(evId);
+  row.calPublic=row.calPublic===false;
+  persistFrankState();
+  renderEventsTab();
+}
+function renderLiveCalendarStrip(){
+  const strip=document.getElementById('live-calendar-strip');
+  if(!strip)return;
+  const now=new Date();
+  const days=[];
+  for(let i=0;i<14;i++){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()+i);
+    days.push(d);
+  }
+  const savedIds=new Set((S.savedEvents||[]).filter(se=>se&&se.calPublic!==false).map(se=>se.eventId));
+  strip.innerHTML=days.map(d=>{
+    const iso=d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+    const has=EVENTS.some(ev=>ev.sortKey===iso&&savedIds.has(ev.id));
+    const sel=window._liveCalSelected===iso;
+    const wd=['sun','mon','tue','wed','thu','fri','sat'][d.getDay()];
+    return`<button type="button" class="live-cal-day${sel?' on':''}" data-cal="${iso}" onclick="selectLiveCalDay('${iso}')">
+      <div class="m">${wd}</div>
+      <div class="d">${d.getDate()}</div>
+      ${has?'<div style="font-size:6px;color:var(--lime-dark);margin-top:2px;">●</div>':''}
+    </button>`;
+  }).join('');
+}
+function selectLiveCalDay(iso){
+  window._liveCalSelected=iso;
+  renderEventsTab();
+}
+function renderLiveSavedList(){
+  const el=document.getElementById('live-saved-list');
+  if(!el)return;
+  const rows=(S.savedEvents||[]).filter(se=>se&&EVENTS.find(ev=>ev.id===se.eventId));
+  if(!rows.length){
+    el.innerHTML='<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--ink-ghost);padding:4px 0;">nothing on your calendar yet. save an event below.</div>';
+    return;
+  }
+  const iso=window._liveCalSelected;
+  el.innerHTML=rows.map(se=>{
+    const ev=EVENTS.find(x=>x.id===se.eventId);
+    if(!ev)return'';
+    if(iso&&ev.sortKey!==iso)return'';
+    const pub=se.calPublic!==false;
+    const safe=ev.name.replace(/</g,'&lt;');
+    const hasTicketsUrl=!!(ev.rsvpUrl&&String(ev.rsvpUrl).trim());
+    const hasFreeRsvp=ev.freeRsvp===true;
+    const isFreeByType=!!(ev.type&&String(ev.type).toLowerCase().includes('free'));
+    const showFreeButton=(!hasTicketsUrl && hasFreeRsvp) || (hasTicketsUrl && (hasFreeRsvp || isFreeByType));
+    return`<div class="live-saved-row">
+      <span>${safe} · ${ev.date}</span>
+      <span style="display:flex;gap:6px;align-items:center;flex-shrink:0;">
+        ${hasTicketsUrl && !showFreeButton
+          ?`<button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventRsvp('${se.eventId}')">${se.rsvp?'✓ tickets':'tickets'}</button>`
+          :''}
+        ${showFreeButton
+          ?`<button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventRsvp('${se.eventId}')">${se.rsvp?'✓ free rsvp':'free rsvp'}</button>`
+          :''}
+        <button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventCalPublic('${se.eventId}')">${pub?'🌐':'🔒'}</button>
+      </span>
+    </div>`;
+  }).filter(Boolean).join('')||'<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--ink-ghost);">no events on this day.</div>';
+}
+function renderEventsTab(){
+  const list=document.getElementById('events-list');
+  if(!list)return;
+  renderLiveCalendarStrip();
+  const filtered=EVENTS.filter(eventMatchesFilter);
+  list.innerHTML=filtered.map(e=>{
+    const saved=!!getSavedEventRow(e.id);
+    const row=getSavedEventRow(e.id);
+    const rsvp=row&&row.rsvp;
+    const safe=e.name.replace(/</g,'&lt;');
+    const hasIg=!!(e.ig&&String(e.ig).trim());
+    const igUrl=hasIg?`https://instagram.com/${e.ig}`:'';
+    const cardBullets=Array.isArray(e.cardBullets)?e.cardBullets:[];
+    const hasTicketsUrl=!!(e.rsvpUrl&&String(e.rsvpUrl).trim());
+    const extra=cardBullets.length?`<div class="event-extra">${cardBullets.map(b=>{
+      const s=String(b).replace(/</g,'&lt;');
+      return`<div class="event-extra-bullet">${s}</div>`;
+    }).join('')}</div>`:'';
+    const igBtn=hasIg?`<button type="button" onclick="window.open('${igUrl}')">instagram</button>`:'';
+    const hasFreeRsvp=e.freeRsvp===true;
+    const isFreeByType=!!(e.type&&String(e.type).toLowerCase().includes('free'));
+    const showFreeButton=(!hasTicketsUrl && hasFreeRsvp) || (hasTicketsUrl && (hasFreeRsvp || isFreeByType));
+    const ticketsBtn=hasTicketsUrl && !showFreeButton
+      ?`<button type="button" class="${rsvp?'primary':''}" onclick="toggleEventRsvp('${e.id}')">${rsvp?'✓ tickets':'tickets'}</button>`
+      :'';
+    const freeBtn=showFreeButton
+      ?`<button type="button" class="${rsvp?'primary':''}" onclick="toggleEventRsvp('${e.id}')">${rsvp?'✓ free rsvp':'free rsvp'}</button>`
+      :'';
+    return`<div class="event-card" style="margin-bottom:14px;">
+      <div class="event-date-tag">${e.date} &middot; ${e.time}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--lime);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:5px;">${e.type}</div>
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;line-height:1;margin-bottom:8px;">${safe}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,0.85);line-height:1.5;margin-bottom:10px;">${e.frank}</div>
+      ${extra}
+      <div class="event-actions">
+        <button type="button" class="${saved?'primary':''}" onclick="toggleEventSaved('${e.id}')">${saved?'★ saved':'+ save'}</button>
+        ${ticketsBtn}
+        ${freeBtn}
+        ${igBtn}
+      </div>
+    </div>`;
+  }).join('')||'<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--ink-ghost);padding:8px 0;">no events match this filter.</div>';
+}
+
+function hkey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
+function aresize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
+function collapseOld(){document.getElementById('chat-body').querySelectorAll('.msg-group:not(.collapsed)').forEach(g=>{g.classList.add('collapsed');g.onclick=function(){this.classList.toggle('collapsed');};});}
+function avatar(){return`<div style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:var(--lime);flex-shrink:0;margin-top:2px;">F</div>`;}
+function bubble(html,isUser=false){
+  const body=document.getElementById('chat-body');
+  const w=document.createElement('div');
+  w.className='msg-group fu';
+  w.style.cssText='display:flex;gap:8px;align-items:flex-start;'+(isUser?'flex-direction:row-reverse;':'');
+  w.innerHTML=isUser?`<div class="user-bubble">${html}</div>`:`${avatar()}<div style="flex:1;min-width:0;">${html}</div>`;
+  body.appendChild(w);body.scrollTop=body.scrollHeight;
+}
+function showTyping(){
+  const body=document.getElementById('chat-body');
+  const el=document.createElement('div');el.id='typing';el.className='msg-group fu';el.style.cssText='display:flex;gap:8px;align-items:flex-start;';
+  el.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble" style="margin-bottom:0;"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
+  body.appendChild(el);body.scrollTop=body.scrollHeight;
+}
+function rmTyping(){const el=document.getElementById('typing');if(el)el.remove();}
+function stars(r){const f=Math.round(r);return'★'.repeat(f)+'☆'.repeat(5-f);}
+
+// card() - eyebrow is now vibeTag(), short and clean
+function card(p){
+  const sv=S.saved.includes(p.id);
+  const vt=vibeTag(p);
+  const img=placeThumbUrl(p);
+  return`<div class="place-card fu">
+    <div class="card-img" onclick="openFullCard(${p.id})" style="cursor:pointer;">
+      <img src="${img}" alt="${p.name}" onerror="this.style.display='none'" loading="lazy"/>
+      <span class="card-eyebrow">${vt}</span>
+      <span class="card-cat">${CE[p.cat]||''}</span>
+    </div>
+    <div class="card-body">
+      <div class="card-name" onclick="openFullCard(${p.id})" style="cursor:pointer;">${p.name}</div>
+      <div class="card-meta">${p.hood} &middot; ${p.price}</div>
+      <div class="card-frank">${p.frank}</div>
+      <div class="card-actions">
+        <button class="card-btn${sv?' saved':''}" id="sb-${p.id}" onclick="openSaveSheet(${p.id})">${sv?'♥ saved':'♡ save'}</button>
+        <button class="card-btn" onclick="openShare(${p.id})">↗ share</button>
+        <button class="card-btn" onclick="openRate(${p.id})">★ rate</button>
+      </div>
+    </div>
+  </div>`;
+}
+
+function match(q,catO){
+  const ql=q.toLowerCase();
+  const sober=(ql.includes('sober')||ql.includes('pregnant')||ql.includes('not drinking')||ql.includes('no alcohol'));
+  const pet=(ql.includes('dog')||ql.includes('pup')||ql.includes('pet'));
+  const kid=(ql.includes('kid')||ql.includes('child')||ql.includes('family')||ql.includes('toddler'));
+  return PLACES.filter(p=>{
+    if(sober&&!p.sober)return false;
+    if(pet&&!p.pet)return false;
+    if(kid&&!p.kid)return false;
+    return true;
+  }).map(p=>{
+    let s=0;
+    if(catO==='dive bars'){
+      const blob=((p.frank||'')+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
+      if(blob.includes('dive bar')||blob.includes('dive')||((p.tags||[]).includes('dive bar'))||((p.tags||[]).includes('dark')&&blob.includes('cave')))s+=14;
+      else if(p.cat==='Late Night'&&blob.includes('dark'))s+=8;
+      else s+=0.25;
+    }else if(catO==='outdoors'){
+      const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
+      if((p.tags||[]).includes('outdoor'))s+=14;
+      else if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('beer garden'))s+=8;
+      else s+=0.25;
+    }else if(catO==='wellness'){
+      const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))+' '+((p.chips||[]).join(' '))).toLowerCase();
+      if(p.sober)s+=16;
+      if((p.tags||[]).includes('sober friendly'))s+=10;
+      if((p.chips||[]).includes('wellness')||blob.includes('wellness'))s+=10;
+      if(blob.includes('gluten-free')||blob.includes('dairy-free')||blob.includes('seed-oil free'))s+=8;
+      if(s===0)s+=0.25;
+    }else if(catO==='patios + rooftops'){
+      const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
+      if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('roof deck')||blob.includes('beer garden')||(p.tags||[]).includes('outdoor'))s+=14;
+      else s+=0.35;
+    }else if(catO==='music'){
+      if((p.tags||[]).includes('live music')||/\b(live music|gospel brunch|concert|venue|stage)\b/i.test(p.frank||''))s+=14;
+      else s+=0.25;
+    }else if(catO==='brunch'){
+      if((p.tags||[]).includes('brunch')||(p.chips||[]).includes('day drink')||/\bbrunch\b/i.test(p.frank||''))s+=12;
+      else s+=0.25;
+    }else if(catO&&(p.cat===catO||(p.chips||[]).some(c=>c===catO)))s+=10;
+    (p.chips||[]).forEach(c=>{if(ql.includes(c.toLowerCase()))s+=4;});
+    (p.tags||[]).forEach(t=>{if(ql.includes(t.toLowerCase()))s+=2;});
+    if(pet&&p.pet)s+=5;if(sober&&p.sober)s+=5;if(kid&&p.kid)s+=5;
+    if(ql.includes('east')&&(p.tags||[]).some(t=>t.includes('east')))s+=3;
+    if((ql.includes('work')||ql.includes('plug'))&&(p.tags||[]).includes('remote work'))s+=5;
+    if((ql.includes('music')||ql.includes('live'))&&(p.tags||[]).includes('live music'))s+=5;
+    if((ql.includes('late')||ql.includes('night'))&&(p.chips||[]).some(c=>c.includes('night')))s+=3;
+    if(ql.includes('coffee')&&p.cat==='Coffee')s+=4;
+    if((ql.includes('cocktail')||ql.includes('wine bar')||ql.includes('negroni'))&&p.cat==='Cocktails')s+=4;
+    if((ql.includes('dive')||ql.includes('late night')||ql.includes('after midnight'))&&p.cat==='Late Night')s+=4;
+    if((ql.includes('bbq')||ql.includes('barbecue'))&&(p.frank.includes('brisket')||p.frank.includes('BBQ')||p.frank.includes('barbecue')))s+=8;
+    if(ql.includes('taco')&&p.frank.includes('taco'))s+=5;
+    if(ql.includes('brunch')&&(p.chips||[]).includes('day drink'))s+=5;
+    if((ql.includes('eat')||ql.includes('restaurant')||ql.includes('dinner')||ql.includes('lunch'))&&p.cat==='Dinner')s+=3;
+    if((ql.includes('taco')||ql.includes('bbq')||ql.includes('barbecue')||ql.includes('quick')||ql.includes('truck'))&&p.cat==='Quick Bite')s+=3;
+    if(ql.includes('date')&&(p.chips||[]).includes('date night'))s+=4;
+    if(ql.includes('michelin')&&(p.badge.includes('michelin')||p.frank.includes('michelin')))s+=6;
+    s+=scoreIntentHintsMatch(ql,p);
+    const hintList=(p.intentHints||[]).map(h=>String(h).toLowerCase());
+    const blobAll=((p.frank||'')+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))+' '+((p.chips||[]).join(' '))+' '+hintList.join(' ')).toLowerCase();
+    const hasMargIntent=(p.intentHints||[]).some(h=>String(h).toLowerCase().includes('marg'));
+    if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||ql.includes('marg'))&&!hasMargIntent){
+      if(blobAll.includes('margarita')||blobAll.includes('margaritas')||blobAll.includes('margs')||blobAll.includes('marg'))s+=10;
+      if(p.cat==='Cocktails')s+=3;
+    }
+    if(ql.includes('lunch')&&(blobAll.includes('lunch')||(p.tags||[]).includes('lunch')))s+=8;
+    if(s===0)s=Math.random()*0.5;
+    return{...p,score:s};
+  }).sort((a,b)=>b.score-a.score).slice(0,4);
+}
+function showCards(places,intro,lbl){
+  const gridInner=places.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">${places.map(card).join('')}</div>`:'';
+  const body=document.getElementById('chat-body');
+  const w=document.createElement('div');
+  w.className='msg-group fu';
+  w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
+  const lt=(lbl||"frAnk's picks").replace(/</g,'&lt;');
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div>${intro}</div>${gridInner?`<div class="frank-card-grid">${gridInner}</div>`:''}</div>`;
+  body.appendChild(w);body.scrollTop=body.scrollHeight;
+}
+function fireCat(el,cat,lbl){
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  el.classList.add('active');collapseOld();CH=[];
+  bubble(lbl,true);
+  const pl=match('',cat);
+  setTimeout(()=>showCards(pl,CI[cat]||'here is what makes sense.',cat),120);
+}
+function firePrompt(q,lbl){
+  collapseOld();CH=[];
+  bubble(lbl,true);
+  const pl=match(q,null);
+  const k=lbl.replace(/^\S+\s/,'').toLowerCase();
+  setTimeout(()=>showCards(pl,PI[k]||'here is what makes sense.',"frAnk's picks"),120);
+}
+
+async function sendMsg(){
+  const inp=document.getElementById('user-input');
+  const msg=inp.value.trim();if(!msg)return;
+  inp.value='';inp.style.height='auto';
+  document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+  collapseOld();bubble(msg,true);showTyping();
+  CH.push({role:'user',content:msg});
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:`You are frAnk. A deadpan, witty Austin local who gives one-sentence recommendations and nothing else.
+
+OUTPUT FORMAT (the only thing that should appear in your response):
+[one punchy sentence about why this place is right for this person] [SHOW_RESULTS]
+
+If genuinely ambiguous: [one short question] [SHOW_RESULTS]
+
+HARD RULES (not optional):
+- Never show reasoning, steps, filters, or process. Think silently, speak only the answer.
+- Never narrate your thinking. No "Step 1", "First", "Based on", "Given that" or similar.
+- Never use em dashes. Never use exclamation points. Never apologize. Never explain.
+- Always end with [SHOW_RESULTS]. Every single response.
+- lowercase only. one or two sentences max. no filler.
+
+SILENT LOGIC (think this, never output it):
+Before answering: check if sober/pregnant guest exists (needs sober-friendly place), if dog/pet is coming (needs pet-friendly place), if kid is along (needs kid-friendly place). Match to the occasion. Find the one specific detail that makes a place right for this group. Then just say that detail.
+
+Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quickie Pickie, The Pershing Cafe, Murray's Tavern, Little Brother Rainey, Little Brother Coffee and Kolaches, ATX Cocina, La Santa Barbacha, Oria, Casa Bianca, Lou's Eastside, Josephine House, Ranch 616, Midnight Cravingz, Tacos Las Amazonas, Radius Butcher and Grocery, The Well, Birdie's, Hokkaisan, Patrizi's, Gina's on Congress, Lutie's, Holiday on 7th, Lil' Easy, Jacoby's, Allday Pizza Hyde Park, Brunch Brunch Baby, June's, Nixta Taqueria, Este, Casino El Camino, El Marisquero Seafood, Better Half Coffee and Cocktails, Cuantos Tacos, Franklin Barbecue, Stubb's Bar-B-Q, la Barbecue, Cosmic Saltillo, Loudmouth, Paperboy, San Gines Austin, Taquero Mucho, Suerte, Terry Black's Barbecue, De Nada Cantina.`,messages:CH})});
+    const data=await res.json();
+    rmTyping();
+    const text=data.content[0].text;
+    const flag=text.includes('[SHOW_RESULTS]');
+    const clean=text.replace('[SHOW_RESULTS]','').trim();
+    CH.push({role:'assistant',content:clean});
+    if(flag){
+      CH=[];
+      const pl=match(msg,null);
+      showCards(pl,clean,"frAnk");
+    }else{
+      bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div>${clean}</div>`);
+    }
+  }catch(e){
+    rmTyping();CH=[];
+    const pl=match(msg,null);
+    const fallbacks=['here is what i would go to.','pulled a few that match what you said.','start with these.'];
+    showCards(pl,fallbacks[Math.floor(Math.random()*fallbacks.length)],"frAnk");
+  }
+}
+
+// ── FULL-SCREEN CARD MODAL ────────────────────────────────────
+function openFullCard(id){
+  const p=PLACES.find(x=>x.id===id);if(!p)return;
+  const sv=S.saved.includes(id);
+  const sc=frankScore(p);
+  const wsc=webReviewScore(p);
+  const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name+' '+p.addr)}`;
+  const street=p.addr.split(',')[0];
+  const igUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' instagram austin')}`;
+  const ttUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' tiktok austin')}`;
+  const webUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' austin official website')}`;
+  const frankEsc=(p.frank||'').replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const urls=placeGalleryUrls(p);
+  const brows=[vibeTag(p),(p.badge||'local pick').slice(0,42),(p.price||'')+' · '+(CE[p.cat]||'')];
+  const slides=urls.map((u,i)=>`<div class="fc-carousel-slide"><img src="${u}" alt="" loading="lazy"/><div class="fc-carousel-overlay"></div><div class="fc-carousel-eyebrow">${String(brows[i]||vibeTag(p)).replace(/</g,'&lt;')}</div></div>`).join('');
+  const dots=urls.map((_,i)=>`<button type="button" class="fc-carousel-dot${i===0?' on':''}" aria-label="photo ${i+1}"></button>`).join('');
+  const hoursTxt=p.hours?p.hours:'hours vary · check google maps';
+  document.getElementById('fc-name-display').textContent=p.name;
+  const body=document.getElementById('fc-scroll-body');
+  body.innerHTML=`
+    <div class="fc-carousel-wrap">
+      <button type="button" class="fc-carousel-arrow fc-carousel-prev" aria-label="previous photo">‹</button>
+      <button type="button" class="fc-carousel-arrow fc-carousel-next" aria-label="next photo">›</button>
+      <div class="fc-carousel" id="fc-carousel">${slides}</div>
+      <div class="fc-carousel-dots">${dots}</div>
+    </div>
+    <div class="fc-section">
+      <div class="fc-section-label">neighborhood · address · scores</div>
+      <div class="fc-meta-grid">
+        <div class="fc-meta-block">
+          <div class="fc-meta-line">${p.hood.replace(/</g,'&lt;')}</div>
+          <div class="fc-meta-line"><a href="${mapsUrl}" target="_blank" rel="noopener">${street.replace(/</g,'&lt;')} ↗</a></div>
+        </div>
+        <div class="fc-meta-block">
+          <div class="fc-score-row">
+            <div class="fc-score-block">
+              <div>
+                <div class="fc-score">${sc}<span class="fc-score-denom">/5</span></div>
+                <div class="fc-score-label">frAnk score</div>
+              </div>
+              <div class="fc-score-info" onclick="this.classList.toggle('tip-open')"><div class="fc-score-icon">i</div>
+                <div class="fc-score-tooltip">blend of what frAnk tracks: room, food, scene, consistency. not a vote. one number.</div>
+              </div>
+            </div>
+            <div class="fc-score-block">
+              <div>
+                <div class="fc-score">${wsc}<span class="fc-score-denom">/5</span></div>
+                <div class="fc-score-label">web reviews</div>
+              </div>
+              <div class="fc-score-info" onclick="this.classList.toggle('tip-open')"><div class="fc-score-icon">i</div>
+                <div class="fc-score-tooltip">average of public ratings from across the web (google, tripadvisor, yelp, etc.), normalized to a 5-point scale.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="fc-section">
+      <div class="fc-section-label">hours open</div>
+      <div class="fc-hours">🕐 ${hoursTxt.replace(/</g,'&lt;')}</div>
+    </div>
+    <div class="fc-section fc-section-social">
+      <div class="fc-section-label">social · website</div>
+      <div class="fc-social-row">
+        <a href="${igUrl}" target="_blank" rel="noopener">instagram</a>
+        <span class="fc-pipe">|</span>
+        <a href="${ttUrl}" target="_blank" rel="noopener">tiktok</a>
+        <span class="fc-pipe">|</span>
+        <a href="${webUrl}" target="_blank" rel="noopener">website</a>
+      </div>
+    </div>
+    <div class="fc-vibe">
+      <div class="fc-vibe-label">frAnk says</div>
+      <div class="fc-vibe-text">${frankEsc}</div>
+    </div>
+    <div class="fc-section">
+      <div class="fc-section-label">tags</div>
+      <div class="fc-tags">${(p.tags||[]).map(t=>`<span class="fctag">${t.replace(/</g,'&lt;')}</span>`).join('')}</div>
+    </div>
+    <div class="fc-section">
+      <div class="fc-section-label">frAnk reviews · friends first</div>
+      <div class="fc-reviews-list">${friendReviewsHTML(p)}</div>
+    </div>
+    <div class="fc-actions">
+      <button type="button" class="fc-act-btn${sv?' fc-saved':''}" id="fcb-${id}" onclick="openSaveSheet(${id})">${sv?'♥ saved':'♡ save'}</button>
+      <button type="button" class="fc-act-btn" onclick="openShare(${id})">↗ share</button>
+      <button type="button" class="fc-act-btn fc-act-rate" onclick="closeFullCard();openRate(${id});">★ rate</button>
+    </div>`;
+
+  document.getElementById('full-card-modal').classList.add('open');
+  body.scrollTop=0;
+  setTimeout(wireFullCardCarousel,0);
+}
+
+function closeFullCard(){
+  document.getElementById('full-card-modal').classList.remove('open');
+}
+
+// ── PROFILE ───────────────────────────────────────────────────
+function updateInit(){
+  syncHeaderAvatar();
+  const n=document.getElementById('p-name').value.trim();
+  const p=n.split(' ').filter(Boolean);
+  const init=(p.length>=2?p[0][0]+p[p.length-1][0]:p[0]?p[0][0]:'?').toUpperCase();
+  const av=document.getElementById('av-init');
+  if(av)av.textContent=init;
+}
+function handleAv(i){
+  if(!i.files||!i.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{
+    S.avatarUrl=e.target.result;
+    markProfileDirty();
+    applyAvatarEverywhere();
+  };
+  r.readAsDataURL(i.files[0]);
+  i.value='';
+}
+function saveProf(){
+  S.profileDirty=false;
+  toast('profile saved.');
+  document.getElementById('st-saved').textContent=S.saved.length;
+  document.getElementById('st-reviews').textContent=S.reviews;
+  const st=document.getElementById('st-photos');
+  if(st)st.textContent=(S.reviewPhotos||[]).length;
+  syncHeaderAvatar();
+  applyAvatarEverywhere();
+  persistFrankState();
+}
+function syncSettingsFieldsFromState(){
+  const a=S.account||{};
+  const se=document.getElementById('set-email');if(se)se.value=a.email||'';
+  const sp=document.getElementById('set-phone');if(sp)sp.value=a.phone||'';
+  const sl=document.getElementById('set-location');if(sl)sl.value=a.location||'';
+  const pr=S.prefs||{};
+  const pub=document.getElementById('set-pref-public');if(pub)pub.checked=pr.publicProfile!==false;
+  const ins=document.getElementById('set-pref-insights');if(ins)ins.checked=pr.contributeInsights!==false;
+  const n1=document.getElementById('set-notif-places');if(n1)n1.checked=pr.notifNewPlaces!==false;
+  const n2=document.getElementById('set-notif-friends');if(n2)n2.checked=pr.notifFriendUpdates!==false;
+  const n3=document.getElementById('set-notif-beta');if(n3)n3.checked=pr.notifBeta!==false;
+}
+function showSettings(){
+  closeAccountFlyout();
+  document.getElementById('settings-sheet').style.display='flex';
+  syncSettingsFieldsFromState();
+  switchSettingsTab('account');
+}
+function closeSettings(){document.getElementById('settings-sheet').style.display='none';}
+function switchSettingsTab(tab){
+  ['account','privacy','notifs'].forEach(t=>{
+    const btn=document.getElementById('stab-'+t);
+    const pane=document.getElementById('stab-content-'+t);
+    if(!btn||!pane)return;
+    const on=t===tab;
+    btn.style.borderBottomColor=on?'var(--forest)':'transparent';
+    btn.style.color=on?'var(--forest)':'var(--ink-ghost)';
+    btn.style.fontWeight=on?'500':'400';
+    pane.style.display=on?'block':'none';
+  });
+}
+function saveSettings(){
+  const em=document.getElementById('set-email')?.value.trim()||'';
+  const ph=document.getElementById('set-phone')?.value.trim()||'';
+  const loc=document.getElementById('set-location')?.value.trim()||'';
+  S.account=S.account||{};
+  S.account.email=em;
+  S.account.phone=ph;
+  S.account.location=loc;
+  if('travelMode' in S.account)delete S.account.travelMode;
+  S.prefs=S.prefs||{};
+  S.prefs.publicProfile=document.getElementById('set-pref-public')?.checked!==false;
+  S.prefs.contributeInsights=document.getElementById('set-pref-insights')?.checked!==false;
+  S.prefs.notifNewPlaces=document.getElementById('set-notif-places')?.checked!==false;
+  S.prefs.notifFriendUpdates=document.getElementById('set-notif-friends')?.checked!==false;
+  S.prefs.notifBeta=document.getElementById('set-notif-beta')?.checked!==false;
+  persistFrankState();
+  closeSettings();
+  toast('saved.');
+}
+function renderPhotoGrid(){
+  const grid=document.getElementById('photo-grid');
+  if(!grid)return;
+  const phs=(S.reviewPhotos||[]).filter(ph=>ph&&ph.src);
+  const tiles=phs.map((ph,i)=>{
+    const esc=ph.src.replace(/"/g,'&quot;');
+    return`<div class="photo-tile" onclick="toggleReviewPhotoPub(${i})">
+      <img src="${esc}" alt=""/>
+      <div class="photo-privacy">${ph.pub!==false?'public':'friends'}</div>
+    </div>`;
+  }).join('');
+  grid.innerHTML=tiles+(phs.length?'':"<div id=\"photo-empty-hint\" style=\"font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);padding:8px 0;grid-column:1/-1;\">photos you attach to ratings show here.</div>");
+}
+function toggleReviewPhotoPub(ix){
+  const phs=(S.reviewPhotos||[]).filter(ph=>ph&&ph.src);
+  const ph=phs[ix];
+  if(!ph)return;
+  ph.pub=ph.pub===false;
+  const orig=S.reviewPhotos||[];
+  const j=orig.findIndex(p=>p&&p.src===ph.src);
+  if(j>=0)orig[j]=ph;
+  renderPhotoGrid();
+  persistFrankState();
+}
+function reviewAvgScore(catRatings){
+  const vals=Object.values(catRatings||{}).filter(n=>typeof n==='number'&&!Number.isNaN(n));
+  if(!vals.length)return'n/a';
+  const a=vals.reduce((x,y)=>x+y,0)/vals.length;
+  return a.toFixed(1)+' ★';
+}
+function formatActivityTs(ts){
+  try{return new Date(ts).toLocaleDateString(undefined,{month:'short',day:'numeric'});}catch(e){return'';}
+}
+function renderProfileReviews(){
+  const wrap=document.getElementById('profile-reviews-wrap');
+  if(!wrap)return;
+  let revs=(S.postedReviews||[]).slice().filter(r=>r&&PLACE_IDS.has(r.placeId));
+  revs.sort((a,b)=>(b.at||0)-(a.at||0));
+  if(!revs.length){
+    wrap.innerHTML='<div style="font-family:\'DM Mono\',monospace;font-size:10px;color:var(--ink-ghost);">no reviews yet. open a place card and tap rate.</div>';
+    return;
+  }
+  wrap.innerHTML=revs.map(r=>{
+    const pl=PLACES.find(p=>p.id===r.placeId);
+    const name=(pl?pl.name:'spot').replace(/</g,'&lt;');
+    const vis=r.visibility==='public'?'public':r.visibility==='private'?'friends':'draft';
+    const note=(r.notes||'').replace(/</g,'&lt;').replace(/\n/g,'<br/>');
+    const sc=reviewAvgScore(r.catRatings||{});
+    return`<div class="review-card">
+      <div class="review-card-name">${name}</div>
+      <div class="review-card-meta">${vis} · ${sc} · ${formatActivityTs(r.at)}</div>
+      ${note?`<div class="review-card-note">${note}</div>`:''}
+    </div>`;
+  }).join('');
+}
+function applyAvatarEverywhere(){
+  syncHeaderAvatar();
+  const pa=document.getElementById('prof-avatar');
+  if(!pa)return;
+  if(S.avatarUrl){
+    pa.innerHTML=`<img src="${S.avatarUrl.replace(/"/g,'&quot;')}" alt="" style="width:100%;height:100%;object-fit:cover;position:absolute;inset:0;"/><span id="av-init" style="display:none;"></span>`;
+    return;
+  }
+  const n=document.getElementById('p-name').value.trim();
+  const p=n.split(' ').filter(Boolean);
+  const init=(p.length>=2?p[0][0]+p[p.length-1][0]:p[0]?p[0][0]:'?').toUpperCase();
+  pa.innerHTML=`<span id="av-init">${init}</span>`;
+}
+function showHeaderAccountMenu(e){
+  e.stopPropagation();
+  const f=document.getElementById('account-flyout');
+  if(!f)return;
+  f.classList.remove('profile-avatar-context');
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+function showProfileAvatarMenu(e){
+  e.stopPropagation();
+  const f=document.getElementById('account-flyout');
+  if(!f)return;
+  f.classList.add('profile-avatar-context');
+  f.style.display=f.style.display==='block'?'none':'block';
+}
+function closeAccountFlyout(){const f=document.getElementById('account-flyout');if(f){f.style.display='none';f.classList.remove('profile-avatar-context');}}
+document.addEventListener('click',function(){closeAccountFlyout();});
+function renderSavedGrid(){
+  ensureListPrivacy();
+  const showSaved=PLACES.filter(p=>S.saved.includes(p.id)&&placeVisibleOnProfile(p.id));
+  const st=document.getElementById('st-saved');
+  if(st)st.textContent=String(showSaved.length);
+  document.getElementById('st-reviews').textContent=S.reviews;
+  renderListFolders();
+  const grid=document.getElementById('saved-grid');
+  grid.querySelectorAll('.place-card').forEach(c=>c.remove());
+  document.getElementById('saved-empty').style.display=showSaved.length?'none':'block';
+  showSaved.forEach(p=>grid.insertAdjacentHTML('beforeend',card(p)));
+}
+function toggleSave(id){
+  if(S.saved.includes(id)){
+    S.saved=S.saved.filter(s=>s!==id);
+    ensureLists();
+    Object.keys(S.lists).forEach(nm=>{S.lists[nm]=(S.lists[nm]||[]).filter(x=>x!==id);});
+    toast('removed.');
+  }else{
+    S.saved.push(id);
+    toast('saved. good taste.');
+  }
+  syncSaveButtons(id);
+  persistFrankState();
+  renderSavedGrid();
+}
+
+function ensureLists(){
+  if(!S.lists||typeof S.lists!=='object')S.lists={};
+  if(!Array.isArray(S.lists['Morning Rituals']))S.lists['Morning Rituals']=[];
+  if(!Array.isArray(S.lists['Late Night Moves']))S.lists['Late Night Moves']=[];
+  if(!Array.isArray(S.lists['The Vault']))S.lists['The Vault']=[];
+}
+
+function syncSaveButtons(id){
+  const sv=S.saved.includes(id);
+  const btns=[
+    document.getElementById('sb-'+id),
+    document.getElementById('fcb-'+id),
+    document.getElementById('mcb-'+id)
+  ].filter(Boolean);
+  btns.forEach(b=>{
+    b.classList.toggle('saved',sv);
+    b.textContent=sv?'♥ saved':'♡ save';
+    if(b.id.startsWith('fcb-')){
+      b.classList.toggle('fc-saved',sv);
+    }
+  });
+  const st=document.getElementById('st-saved');
+  if(st)st.textContent=S.saved.length;
+}
+
+function renderSaveSheetCreate(){
+  const w=document.getElementById('save-sheet-create-wrap');
+  if(!w)return;
+  w.innerHTML=`<div class="sheet-create-wrap">
+    <div class="sheet-sticker-card sheet-create-sticker">
+      <div class="sheet-create-h">create a list</div>
+      <div class="sheet-create-sub">name it, set privacy. we drop this spot in.</div>
+      <input type="text" id="save-sheet-new-name" class="pinput" placeholder="e.g. weekend brunch tour" style="width:100%;box-sizing:border-box;margin-bottom:8px;" maxlength="48" autocomplete="off"/>
+      <label style="display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);margin-bottom:12px;cursor:pointer;">
+        <input type="checkbox" id="save-sheet-new-private"/> private list
+      </label>
+      <button type="button" class="fbtn" style="width:100%;" onclick="createListAndAddPlace()">create &amp; add</button>
+    </div>
+    <div class="sheet-or"><span>or add to a list</span></div>
+  </div>`;
+}
+function createListAndAddPlace(){
+  const id=SAVE_SHEET.placeId;
+  if(!id)return;
+  const raw=document.getElementById('save-sheet-new-name')?.value.trim();
+  if(!raw){toast('name your list first.');return;}
+  ensureLists();
+  if(Object.prototype.hasOwnProperty.call(S.lists,raw)){toast('you already have that list name.');return;}
+  const priv=document.getElementById('save-sheet-new-private')?.checked;
+  S.lists[raw]=[];
+  ensureListPrivacy();
+  S.listPrivacy[raw]=priv?'private':'public';
+  saveToList(raw);
+}
+function openSaveSheet(id){
+  ensureLists();
+  SAVE_SHEET={open:true,placeId:id};
+  renderSaveSheetCreate();
+  const p=PLACES.find(x=>x.id===id);
+  const placeLbl=document.getElementById('save-sheet-place');
+  if(placeLbl)placeLbl.textContent=p?`${p.name.toLowerCase()} · pick a list`:'pick a list';
+
+  const listEl=document.getElementById('save-sheet-list');
+  if(listEl){
+    ensureLists();
+    const names=getAllListNames();
+    listEl.innerHTML=names.map((nm)=>{
+      const on=(S.lists[nm]||[]).includes(id);
+      const count=(S.lists[nm]||[]).length;
+      const sticker=(listDisplayName(nm).trim()[0]||'L').toUpperCase();
+      const displayNm=listDisplayName(nm);
+      const displaySafe=displayNm.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      const safeClick=nm.replace(/'/g,"\\'");
+      return `<div class="sheet-item${on?' on':''}" onclick="saveToList('${safeClick}')">
+        <div class="sheet-item-left">
+          <div class="sheet-sticker">${sticker}</div>
+          <div style="min-width:0;">
+            <div class="sheet-item-name">${displaySafe}</div>
+            <div class="sheet-item-meta">${count} spot${count===1?'':'s'}</div>
+          </div>
+        </div>
+        <div class="sheet-check">${on?'saved':'add'}</div>
+      </div>`;
+    }).join('');
+  }
+
+  const rm=document.getElementById('save-sheet-remove');
+  if(rm){
+    const sv=S.saved.includes(id);
+    rm.style.display=sv?'block':'none';
+    rm.textContent='remove';
+  }
+
+  document.getElementById('save-sheet-overlay').classList.add('open');
+  const sheet=document.getElementById('save-sheet');
+  sheet.classList.add('open');
+  sheet.setAttribute('aria-hidden','false');
+  document.body.style.overflow='hidden';
+}
+
+function closeSaveSheet(){
+  SAVE_SHEET.open=false;
+  document.getElementById('save-sheet-overlay').classList.remove('open');
+  const sheet=document.getElementById('save-sheet');
+  sheet.classList.remove('open');
+  sheet.setAttribute('aria-hidden','true');
+  if(!document.getElementById('copy-explore-sheet')?.classList.contains('open')&&!document.getElementById('explore-preview-overlay')?.classList.contains('open')&&!document.getElementById('explore-cover-modal-bg')?.classList.contains('open')&&!document.getElementById('list-folder-modal')?.classList.contains('open'))document.body.style.overflow='';
+}
+
+function saveToList(name){
+  ensureLists();
+  const id=SAVE_SHEET.placeId;
+  if(!id)return;
+  if(!S.saved.includes(id))S.saved.push(id);
+  Object.keys(S.lists).forEach(nm=>{S.lists[nm]=((S.lists[nm]||[]).filter(x=>x!==id));});
+  if(!Array.isArray(S.lists[name]))S.lists[name]=[];
+  S.lists[name].push(id);
+  syncSaveButtons(id);
+  persistFrankState();
+  renderSavedGrid();
+  toast(`saved to ${name.toLowerCase()}.`);
+  closeSaveSheet();
+}
+
+function removeFromSaved(){
+  const id=SAVE_SHEET.placeId;
+  if(!id)return closeSaveSheet();
+  S.saved=S.saved.filter(s=>s!==id);
+  ensureLists();
+  Object.keys(S.lists).forEach(nm=>{S.lists[nm]=((S.lists[nm]||[]).filter(x=>x!==id));});
+  syncSaveButtons(id);
+  persistFrankState();
+  renderSavedGrid();
+  toast('removed.');
+  closeSaveSheet();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Escape')return;
+  const lfm=document.getElementById('list-folder-modal');
+  if(lfm&&lfm.classList.contains('open')){closeListFolderModal();return;}
+  const um=document.getElementById('unsaved-modal');
+  if(um&&um.classList.contains('open')){closeUnsavedModal();return;}
+  const copySheet=document.getElementById('copy-explore-sheet');
+  if(copySheet&&copySheet.classList.contains('open')){closeCopyExploreSheet();return;}
+  const ex=document.getElementById('explore-preview-overlay');
+  if(ex&&ex.classList.contains('open')){closeExplorePreview();return;}
+  const mr=document.getElementById('m-rate');
+  if(mr&&mr.classList.contains('open')){closeRateModal();return;}
+  const fc=document.getElementById('full-card-modal');
+  if(fc&&fc.classList.contains('open')){closeFullCard();return;}
+  if(SAVE_SHEET.open)closeSaveSheet();
+});
+function openShare(id){const p=PLACES.find(x=>x.id===id);document.getElementById('share-name').textContent=p?p.name:'';document.getElementById('m-share').classList.add('open');}
+function doShare(pl){closeModals();toast('shared to '+pl+' ✓');}
+function closeModals(){document.querySelectorAll('.modal-bg').forEach(m=>{if(m.id!=='unsaved-modal')m.classList.remove('open');});}
+
+// ── RATE MODAL - 5 category rows ─────────────────────────────
+const RATE_CATS=['staff','accessibility','parking','price','vibe'];
+function getDraftForPlace(placeId){
+  return(S.rateDrafts||[]).find(d=>d.placeId===placeId);
+}
+function upsertRateDraft(placeId,cats,notes,photo){
+  S.rateDrafts=S.rateDrafts||[];
+  const idx=S.rateDrafts.findIndex(d=>d.placeId===placeId);
+  const entry={placeId,catRatings:cats,notes,photo:photo||null,updated:Date.now()};
+  if(idx>=0)S.rateDrafts[idx]=entry;else S.rateDrafts.push(entry);
+}
+function renderRatingDrafts(){
+  const wrap=document.getElementById('rating-drafts-wrap');
+  const head=document.getElementById('rating-drafts-heading');
+  if(!wrap||!head)return;
+  const drafts=(S.rateDrafts||[]).filter(d=>PLACE_IDS.has(d.placeId));
+  if(!drafts.length){wrap.style.display='none';head.style.display='none';wrap.innerHTML='';return;}
+  head.style.display='block';
+  wrap.style.display='block';
+  wrap.innerHTML=drafts.map(d=>{
+    const pl=PLACES.find(x=>x.id===d.placeId);
+    const name=pl?pl.name.replace(/</g,'&lt;'):'spot';
+    return`<div style="border:1px solid #ddd8cc;border-radius:8px;padding:10px 12px;margin-bottom:8px;background:#fff;">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;color:var(--forest);text-transform:uppercase;">${name}</div>
+      <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-top:4px;">draft · only you see this</div>
+      <button type="button" onclick="resumeRatingDraft(${d.placeId})" style="margin-top:8px;padding:6px 12px;background:var(--forest);color:var(--lime);border:none;border-radius:4px;font-family:'DM Mono',monospace;font-size:9px;cursor:pointer;text-transform:uppercase;">continue rating</button>
+    </div>`;
+  }).join('');
+}
+function resumeRatingDraft(placeId){
+  openRate(placeId);
+}
+function openRate(id){
+  const p=PLACES.find(x=>x.id===id);
+  S.rateId=id;
+  S.catRatings={};
+  S.ratePhotoData=null;
+  const ph=document.getElementById('rate-photo-preview');
+  if(ph){ph.classList.remove('show');ph.removeAttribute('src');}
+  const rin=document.getElementById('rate-photo-input');
+  if(rin)rin.value='';
+  const notesEl=document.getElementById('rate-notes');
+  if(notesEl)notesEl.value='';
+  const d=getDraftForPlace(id);
+  if(d){
+    S.catRatings={...(d.catRatings||{})};
+    if(notesEl&&d.notes)notesEl.value=d.notes;
+    if(d.photo){S.ratePhotoData=d.photo;if(ph){ph.src=d.photo;ph.classList.add('show');}}
+  }
+  document.getElementById('rate-name').textContent=p?p.name:'';
+  const rows=document.getElementById('rate-rows');
+  rows.innerHTML=RATE_CATS.map(cat=>{
+    const label=cat.charAt(0).toUpperCase()+cat.slice(1);
+    return`<div class="rate-row">
+      <span class="rate-row-label">${label}</span>
+      <div class="rate-stars-wrap" id="rs-${cat}">
+        ${[1,2,3,4,5].map(n=>`<span class="rate-star" onclick="setCatRating('${cat}',${n})" data-cat="${cat}" data-n="${n}">☆</span>`).join('')}
+      </div>
+    </div>`;
+  }).join('');
+  RATE_CATS.forEach(cat=>{const n=S.catRatings[cat];if(n)setCatRating(cat,n);});
+  document.getElementById('m-rate').classList.add('open');
+}
+function setCatRating(cat,n){
+  S.catRatings[cat]=n;
+  document.querySelectorAll('#rs-'+cat+' .rate-star').forEach((s,i)=>{
+    s.textContent=i<n?'★':'☆';
+    s.classList.toggle('on',i<n);
+  });
+}
+function handleRatePhoto(input){
+  if(!input.files||!input.files[0])return;
+  const r=new FileReader();
+  r.onload=e=>{
+    S.ratePhotoData=e.target.result;
+    const ph=document.getElementById('rate-photo-preview');
+    if(ph){ph.src=S.ratePhotoData;ph.classList.add('show');}
+    toast('photo attached.');
+  };
+  r.readAsDataURL(input.files[0]);
+  input.value='';
+}
+function submitRate(mode){
+  const id=S.rateId;
+  if(!id)return;
+  const notesEl=document.getElementById('rate-notes');
+  const notes=notesEl?notesEl.value.trim():'';
+  const cats={...S.catRatings};
+  const photo=S.ratePhotoData||null;
+  if(mode==='draft'){
+    upsertRateDraft(id,cats,notes,photo);
+    persistFrankState();
+    renderRatingDrafts();
+    closeRateModal();
+    toast('draft saved. finish whenever.');
+    return;
+  }
+  S.rateDrafts=(S.rateDrafts||[]).filter(d=>d.placeId!==id);
+  S.postedReviews=S.postedReviews||[];
+  S.postedReviews.push({placeId:id,visibility:mode,catRatings:cats,notes,photo,at:Date.now()});
+  S.reviews++;
+  if(photo){
+    S.reviewPhotos=S.reviewPhotos||[];
+    S.reviewPhotos.push({src:photo,placeId:id,pub:mode!=='private'});
+  }
+  persistFrankState();
+  renderRatingDrafts();
+  renderProfileReviews();
+  renderPhotoGrid();
+  const st=document.getElementById('st-photos');
+  if(st)st.textContent=(S.reviewPhotos||[]).length;
+  closeRateModal();
+  const msgs={private:'posted for frank friends only.',public:'posted for everyone on frank.'};
+  toast(msgs[mode]||'posted.');
+}
+function closeRateModal(){
+  document.getElementById('m-rate').classList.remove('open');
+  S.ratePhotoData=null;
+  const ph=document.getElementById('rate-photo-preview');
+  if(ph){ph.classList.remove('show');ph.removeAttribute('src');}
+  const rin=document.getElementById('rate-photo-input');
+  if(rin)rin.value='';
+}
+
+// ── ONBOARDING ────────────────────────────────────────────────
+function showOBScreen(id){
+  ['ob-welcome','ob-auth','ob-profile'].forEach(s=>{
+    const el=document.getElementById(s);
+    if(el)el.style.display=s===id?'flex':'none';
+  });
+}
+function finishOnboarding(){
+  const name=document.getElementById('ob-name-input').value.trim();
+  const err=document.getElementById('ob-name-error');
+  if(!name){err.style.display='block';document.getElementById('ob-name-input').style.borderColor='#ff6b6b';return;}
+  err.style.display='none';
+  document.getElementById('p-name').value=name;
+  const em=document.getElementById('ob-email-input')?.value.trim()||'';
+  const ph=document.getElementById('ob-phone-input')?.value.trim()||'';
+  S.account=S.account||{};
+  S.account.email=em;
+  S.account.phone=ph;
+  updateInit();syncHeaderAvatar();
+  localStorage.setItem('frank-onboarded','1');
+  persistFrankState();
+  document.getElementById('onboarding').style.display='none';
+  const firstName=name.split(' ')[0].toLowerCase();
+  const firstBubble=document.querySelector('#chat-body .frank-bubble');
+  if(firstBubble){
+    const nodes=[...firstBubble.childNodes];
+    const textNode=nodes.find(n=>n.nodeType===3||n.nodeName==='#text');
+    if(textNode)textNode.textContent=`hey ${firstName}. i know where the good stuff is. just ask.`;
+  }
+}
+
+function triggerBetaFeedback(){
+  collapseOld();switchTab('chat');
+  setTimeout(()=>{
+    const w=document.createElement('div');
+    w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
+    w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble">
+      <div style="color:var(--lime);font-family:'DM Mono',monospace;font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">quick feedback</div>
+      be honest. what's the one thing frAnk is missing right now?
+      <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;">
+        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('more dive bars.',true)">more dive bars</button>
+        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('faster lists + covers.',true)">lists &amp; covers</button>
+        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('need to share lists.',true)">sharing lists</button>
+        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('need more spots.',true)">more spots</button>
+      </div>
+    </div></div>`;
+    document.getElementById('chat-body').appendChild(w);
+    document.getElementById('chat-body').scrollTop=document.getElementById('chat-body').scrollHeight;
+  },100);
+}
+
+// ── CAT GRID ──────────────────────────────────────────────────
+const BROWSE_CATS=[
+  {handler:'events',label:'live events',emoji:'📅'},
+  {cat:'dive bars',label:'dive bars',emoji:'🕳️'},
+  {cat:'outdoors',label:'outdoors',emoji:'🌿'},
+  {cat:'wellness',label:'wellness',emoji:'🧘'},
+  {cat:'Coffee',label:'coffee',emoji:'☕'},
+  {cat:'Cocktails',label:'cocktails',emoji:'🍸'},
+  {cat:'Dinner',label:'dinner',emoji:'🍽️'},
+  {cat:'Late Night',label:'late night',emoji:'🌙'},
+  {cat:'Quick Bite',label:'quick bite',emoji:'🌮'},
+  {cat:'patios + rooftops',label:'rooftops & patios',emoji:'🌆'},
+  {cat:'music',label:'music',emoji:'🎶'},
+  {cat:'brunch',label:'brunch',emoji:'🥂'},
+];
+function fireLiveEventsCategory(el){
+  if(el){
+    document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
+    el.classList.add('active');
+  }
+  collapseOld();CH=[];
+  switchTab('events');
+  toast('live events: shows, tickets, calendar. different from place picks here.');
+}
+function buildCatGrid(){
+  const grid=document.getElementById('cat-grid-primary');if(!grid)return;
+  grid.innerHTML=BROWSE_CATS.map(c=>{
+    if(c.handler==='events')return`<button type="button" class="cat-btn" onclick="fireLiveEventsCategory(this)"><span class="cat-emoji">${c.emoji}</span><span class="cat-label">${c.label}</span></button>`;
+    return`<button type="button" class="cat-btn" onclick="fireCat(this,'${c.cat}','${c.label}')"><span class="cat-emoji">${c.emoji}</span><span class="cat-label">${c.label}</span></button>`;
+  }).join('');
+}
+buildCatGrid();
+
+function syncHeaderAvatar(){
+  const slots=document.querySelectorAll('.header-avatar-slot');
+  if(!slots.length)return;
+  const inner=S.avatarUrl
+    ?`<img src="${S.avatarUrl.replace(/"/g,'&quot;')}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+    :(function(){
+      const name=document.getElementById('p-name')?.value.trim()||'';
+      const parts=name.split(' ').filter(Boolean);
+      let letter;
+      if(parts.length>=2)letter=(parts[0][0]+parts[parts.length-1][0]).toUpperCase();
+      else if(parts.length===1)letter=parts[0][0].toUpperCase();
+      else letter='🧑';
+      return`<span class="header-avatar-init" style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:11px;color:var(--lime);">${letter}</span>`;
+    })();
+  slots.forEach(ha=>{ha.innerHTML=inner;});
+}
+
+// Inline HTML handlers run in global scope; ES modules do not expose bindings to `window` by default.
+window.aresize=aresize;
+window.bubble=bubble;
+window.closeAccountFlyout=closeAccountFlyout;
+window.closeCopyExploreSheet=closeCopyExploreSheet;
+window.closeExplorePreview=closeExplorePreview;
+window.closeFullCard=closeFullCard;
+window.closeModals=closeModals;
+window.closeRateModal=closeRateModal;
+window.closeSaveSheet=closeSaveSheet;
+window.closeSettings=closeSettings;
+window.closeUnsavedModal=closeUnsavedModal;
+window.confirmDiscardProfile=confirmDiscardProfile;
+window.confirmSaveAndLeave=confirmSaveAndLeave;
+window.copyExploreToMyList=copyExploreToMyList;
+window.createListAndAddPlace=createListAndAddPlace;
+window.doShare=doShare;
+window.filterLiveEvents=filterLiveEvents;
+window.fireLiveEventsCategory=fireLiveEventsCategory;
+window.finishOnboarding=finishOnboarding;
+window.fireCat=fireCat;
+window.firePrompt=firePrompt;
+window.handleAv=handleAv;
+window.handleRatePhoto=handleRatePhoto;
+window.hkey=hkey;
+window.markProfileDirty=markProfileDirty;
+window.openCopyExploreSheet=openCopyExploreSheet;
+window.openExplorePreview=openExplorePreview;
+window.openExploreCoverStudio=openExploreCoverStudio;
+window.closeExploreCoverStudio=closeExploreCoverStudio;
+window.applyExploreCoverPreset=applyExploreCoverPreset;
+window.generateExplorePlaylistCover=generateExplorePlaylistCover;
+window.onExploreCoverFile=onExploreCoverFile;
+window.openFullCard=openFullCard;
+window.openListFolderModal=openListFolderModal;
+window.closeListFolderModal=closeListFolderModal;
+window.openRate=openRate;
+window.openSaveSheet=openSaveSheet;
+window.openShare=openShare;
+window.removeFromSaved=removeFromSaved;
+window.resumeRatingDraft=resumeRatingDraft;
+window.saveProf=saveProf;
+window.saveSettings=saveSettings;
+window.saveToList=saveToList;
+window.selectLiveCalDay=selectLiveCalDay;
+window.sendMsg=sendMsg;
+window.setCatRating=setCatRating;
+window.setListPrivacy=setListPrivacy;
+window.setLiveFilter=setLiveFilter;
+window.showHeaderAccountMenu=showHeaderAccountMenu;
+window.showOBScreen=showOBScreen;
+window.showProfileAvatarMenu=showProfileAvatarMenu;
+window.showSettings=showSettings;
+window.submitRate=submitRate;
+window.switchSettingsTab=switchSettingsTab;
+window.switchTab=switchTab;
+window.toast=toast;
+window.toggleEventCalPublic=toggleEventCalPublic;
+window.toggleEventRsvp=toggleEventRsvp;
+window.toggleEventSaved=toggleEventSaved;
+window.toggleReviewPhotoPub=toggleReviewPhotoPub;
+window.triggerBetaFeedback=triggerBetaFeedback;
+window.tryLeaveProfile=tryLeaveProfile;
+window.updateInit=updateInit;
+
+// ── INIT ──────────────────────────────────────────────────────
+document.getElementById('explore-cover-file')?.addEventListener('change',onExploreCoverFile);
+loadFrankState();
+(function(){
+  document.getElementById('q-text').textContent='"'+DQ.q+'"';
+  document.getElementById('q-attr').textContent='· '+DQ.attr;
+  const body=document.getElementById('chat-body');
+  const w=document.createElement('div');
+  w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
+  const rawName=document.getElementById('p-name').value.trim();
+  const firstName=rawName?rawName.split(' ')[0].toLowerCase():'';
+  const greeting=firstName?`hey ${firstName}.`:'hey.';
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greeting} i've been everywhere worth going in this city. pick a category above. <strong>live events</strong> is for shows &amp; tickets (opens the events tab). everything else here is places. or just tell me what you're after.</div></div>`;
+  body.appendChild(w);
+})();
+</script>
+</body>
+</html>
