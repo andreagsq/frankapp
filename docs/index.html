@@ -402,7 +402,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .list-create-card{border:1px dashed #bfb6a1;background:#f7f2e7;display:flex;align-items:center;justify-content:center;min-height:128px;cursor:pointer;}
 .list-create-inner{font-family:'DM Mono',monospace;font-size:10px;color:var(--forest);text-align:center;}
 .list-cover-frame{position:relative;width:100%;height:120px;border:1px solid #ddd8cc;border-radius:8px;overflow:hidden;background:#0f261b;margin-bottom:8px;}
-.list-cover-frame img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.15);max-width:none;max-height:none;display:block;touch-action:none;cursor:grab;}
+.list-cover-frame img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1);max-width:none;max-height:none;display:block;touch-action:none;cursor:grab;}
 .list-cover-frame.dragging img{cursor:grabbing;}
 .list-cover-tools{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px;}
 .list-cover-help{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);}
@@ -1155,6 +1155,21 @@ const GLOBAL_EXPLORE_LISTS=[
 let EXPLORE_ACTIVE_ID=null;
 function userListExploreId(name){return`u:${encodeURIComponent(name)}`;}
 function parseUserListExploreId(id){return id&&id.startsWith('u:')?decodeURIComponent(id.slice(2)):null;}
+function getOwnListExploreByName(name){
+  ensureLists();
+  if(!S.lists||!(name in S.lists))return null;
+  const me=(document.getElementById('p-name')?.value||'you').trim().toUpperCase()||'YOU';
+  return{
+    id:userListExploreId(name),
+    title:listDisplayName(name),
+    creator:me,
+    placeIds:sanitizePlaceIds(S.lists[name]||[]),
+    coverIndex:0,
+    isUserList:true,
+    isOwned:true,
+    listName:name
+  };
+}
 function getPublicUserExploreLists(){
   ensureLists();ensureListPrivacy();
   const me=(document.getElementById('p-name')?.value||'you').trim().toUpperCase()||'YOU';
@@ -1163,7 +1178,14 @@ function getPublicUserExploreLists(){
   }));
 }
 function getExploreListsMerged(){return GLOBAL_EXPLORE_LISTS.concat(getPublicUserExploreLists());}
-function getExploreListById(id){return getExploreListsMerged().find(x=>x.id===id)||null;}
+function getExploreListById(id){
+  const own=parseUserListExploreId(id);
+  if(own){
+    const mine=getOwnListExploreByName(own);
+    if(mine)return mine;
+  }
+  return getExploreListsMerged().find(x=>x.id===id)||null;
+}
 function isExploreListSaved(id){S.savedExploreLists=S.savedExploreLists||{};return !!S.savedExploreLists[id];}
 function saveExploreListToMine(id){
   const L=getExploreListById(id);if(!L)return;
@@ -1247,7 +1269,7 @@ function setListCoverTransform(){
   const img=document.getElementById('list-editor-cover-preview');
   if(!img||!LIST_COVER_SRC)return;
   const st=getListCoverState();
-  img.style.transform=`translate(calc(-50% + ${st.x}px), calc(-50% + ${st.y}px)) scale(1.15)`;
+  img.style.transform=`translate(calc(-50% + ${st.x}px), calc(-50% + ${st.y}px)) scale(1)`;
 }
 function setListCoverUI(src,opts){
   const frame=document.getElementById('list-cover-frame');
@@ -1551,7 +1573,7 @@ function renderListFolders(){
     const tags=(meta.tags||[]).slice(0,3).map(t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'));
     const cover=S.listCovers&&S.listCovers[nm];
     const covObj=(cover&&typeof cover==='object')?cover:{src:String(cover||''),x:0,y:0};
-    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(1.15);width:100%;height:100%;object-fit:cover;"`;
+    const covStyle=`style="object-fit:cover;object-position:calc(50% + ${(covObj.x||0)}px) calc(50% + ${(covObj.y||0)}px);"`;
     const thumb=(covObj.src)
       ?`<div class="list-folder-visual"><img src="${String(covObj.src).replace(/"/g,'&quot;')}" alt="" ${covStyle}/></div>`
       :first
@@ -1561,7 +1583,7 @@ function renderListFolders(){
     const row=`<div class="list-privacy-row" onclick="event.stopPropagation();"><div class="list-row-actions"><button type="button" class="list-mini-btn" onclick="openListEditor('${esc}')">edit</button><button type="button" class="list-mini-btn" onclick="shareList('${esc}')">share</button></div></div>`;
     const tagRow=tags.length?`<div class="list-folder-tags">${tags.map(t=>`<span class="list-folder-tag">${t}</span>`).join('')}</div>`:'';
     const descRow=desc?`<div class="list-folder-sub">${desc.replace(/</g,'&lt;')}</div>`:'';
-    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div>${privChip}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);padding-left:4px;">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
+    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openExplorePreview('${userListExploreId(nm)}')" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div>${privChip}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);padding-left:4px;">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
   });
   cards.unshift(`<div class="list-folder-card list-create-card" onclick="openListEditor()"><div class="list-create-inner">+ create list<br/>name, tags, cover, share</div></div>`);
   wrap.innerHTML=cards.join('');
@@ -1624,7 +1646,7 @@ function renderExploreFeed(){
     const coverSource=L.isUserList?(S.listCovers&&S.listCovers[L.listName]||''):resolveExploreCoverUrl(L.id,L.coverIndex||0);
     const covObj=(coverSource&&typeof coverSource==='object')?coverSource:{src:String(coverSource||''),x:0,y:0};
     const cov=(covObj.src||'').replace(/"/g,'&quot;');
-    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(1.15);width:100%;height:100%;object-fit:cover;"`;
+    const covStyle=`style="object-fit:cover;object-position:calc(50% + ${(covObj.x||0)}px) calc(50% + ${(covObj.y||0)}px);"`;
     const saved=isExploreListSaved(L.id);
     return`<button type="button" class="explore-feed-card fu" onclick="openExplorePreview('${L.id}')">
       <div class="explore-card-cover">${cov?`<img src="${cov}" alt="" loading="lazy" ${covStyle}/>`:''}</div>
@@ -1651,7 +1673,8 @@ function openExplorePreview(listId){
     const coverSource=L.isUserList?(S.listCovers&&S.listCovers[L.listName]||''):resolveExploreCoverUrl(L.id,L.coverIndex||0);
     const covObj=(coverSource&&typeof coverSource==='object')?coverSource:{src:String(coverSource||''),x:0,y:0};
     cimg.src=(covObj.src||'');
-    cimg.style.transform=`translate(calc(${covObj.x||0}px), calc(${covObj.y||0}px)) scale(1.15)`;
+    cimg.style.objectFit='cover';
+    cimg.style.objectPosition=`calc(50% + ${covObj.x||0}px) calc(50% + ${covObj.y||0}px)`;
   }
   const spotEl=document.getElementById('explore-preview-spots');
   spotEl.innerHTML=ids.map(id=>{
@@ -1681,8 +1704,13 @@ function openExplorePreview(listId){
   const saveBtn=document.querySelector('.explore-preview-foot .explore-copy-btn');
   if(saveBtn){
     const saved=isExploreListSaved(L.id);
-    saveBtn.textContent=saved?'saved list':'save list';
-    saveBtn.onclick=()=>{saveExploreListToMine(L.id);saveBtn.textContent='saved list';renderExploreFeed();};
+    if(L.isOwned){
+      saveBtn.textContent='share list';
+      saveBtn.onclick=()=>shareList(L.listName);
+    }else{
+      saveBtn.textContent=saved?'saved list':'save list';
+      saveBtn.onclick=()=>{saveExploreListToMine(L.id);saveBtn.textContent='saved list';renderExploreFeed();};
+    }
   }
   document.body.style.overflow='hidden';
 }
