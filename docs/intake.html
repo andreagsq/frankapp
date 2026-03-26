@@ -112,9 +112,10 @@ function requireFounderAccess(){
   if(!pin){
     const first = prompt("Set your founder PIN (one-time on this device)");
     if(first===null || !String(first).trim()) denyAccess("No founder PIN set.");
+    const firstTrim = String(first).trim();
     const confirmPin = prompt("Confirm founder PIN");
-    if(confirmPin !== first) denyAccess("PIN confirmation did not match.");
-    pin = String(first).trim();
+    if(String(confirmPin).trim() !== firstTrim) denyAccess("PIN confirmation did not match.");
+    pin = firstTrim;
     localStorage.setItem(FOUNDER_PIN_KEY, pin);
   }
   const attempt = prompt("Founder PIN required");

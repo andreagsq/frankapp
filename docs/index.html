@@ -104,9 +104,20 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 /* CHAT */
 #chat-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
-.frank-card-grid{margin-top:10px;width:100%;max-width:100%;}
+.frank-card-grid{margin-top:10px;width:100%;max-width:100%;min-width:0;}
 .frank-card-grid .place-card{margin-bottom:0;}
-.frank-card-grid-inner{width:min(100%,720px);margin:0 auto;}
+.frank-card-grid-inner{
+  display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;width:100%;max-width:100%;min-width:0;
+  overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;scroll-padding:0 12px;padding:2px 0 12px;box-sizing:border-box;
+  scrollbar-width:thin;
+}
+.frank-card-grid-inner::-webkit-scrollbar{height:4px;}
+.frank-card-grid-inner::-webkit-scrollbar-thumb{background:rgba(28,58,42,0.25);border-radius:3px;}
+.frank-card-grid-inner .place-card{
+  flex:0 0 clamp(138px,42vw,176px);max-width:clamp(138px,42vw,176px);min-width:0;
+  scroll-snap-align:start;scroll-snap-stop:normal;
+}
 .frank-tag{display:inline-block;background:var(--lime);color:var(--forest);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;margin-right:7px;font-family:'DM Mono',monospace;text-transform:lowercase;vertical-align:middle;}
 .user-bubble{background:var(--cream-dark);border:1px solid #d8d0bc;border-radius:14px 3px 14px 14px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:80%;margin-left:auto;color:var(--ink-mid);margin-bottom:10px;}
 .msg-group{margin-bottom:10px;transition:opacity 0.2s;}
@@ -132,13 +143,17 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .card-name{font-weight:800;font-size:12px;text-transform:uppercase;letter-spacing:0.03em;color:var(--forest);line-height:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-meta{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-frank{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--forest);margin-top:6px;line-height:1.5;border-left:2px solid var(--lime);padding-left:6px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
-.card-frank-label{display:inline-block;font-size:9px;color:var(--ink);letter-spacing:0.06em;margin-right:5px;}
+.card-frank-label{display:inline-block;font-size:9px;font-weight:700;color:var(--forest-mid);letter-spacing:0.08em;margin-right:5px;text-transform:lowercase;}
 .card-tip{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card-tip-label{font-size:8px;color:var(--ink-ghost);margin-right:4px;text-transform:uppercase;letter-spacing:0.05em;}
 .card-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px;}
 .card-btn{padding:5px 0;font-family:'DM Mono',monospace;font-size:8.5px;border:1px solid #ddd8cc;background:transparent;color:var(--ink);cursor:pointer;border-radius:3px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;}
 .card-btn:hover{border-color:var(--forest);color:var(--forest);}
 .card-btn.saved{border-color:var(--forest);color:var(--forest);background:#eaf2ed;}
+.frank-see-more-wrap{margin-top:8px;display:flex;justify-content:flex-start;}
+.frank-see-more-btn{font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;border:1px solid var(--forest);background:var(--cream);color:var(--forest);border-radius:4px;cursor:pointer;}
+.frank-see-more-btn:hover{background:#eaf2ed;}
+.frank-see-more-btn:disabled{opacity:0.55;cursor:default;border-color:#c8c0ac;color:var(--ink-ghost);}
 
 /* INPUT */
 .input-wrap{display:flex;gap:10px;align-items:flex-end;padding:8px 0 calc(10px + env(safe-area-inset-bottom, 0px));border-top:1px solid #ddd8cc;background:var(--cream);flex-shrink:0;width:100%;}
@@ -2095,6 +2110,12 @@ function syncChatTopCompact(){
   const n=[...document.querySelectorAll('#chat-body .msg-group')].filter(g=>g.id!=='typing').length;
   sc.classList.toggle('chat-top-compact',n>=2);
 }
+function scrollChatToGroup(el){
+  if(!el)return;
+  requestAnimationFrame(()=>{
+    try{el.scrollIntoView({block:'start',behavior:'smooth'});}catch(e){try{el.scrollIntoView(true);}catch(e2){}}
+  });
+}
 function avatar(){return`<div style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:var(--lime);flex-shrink:0;margin-top:2px;">F</div>`;}
 function bubble(html,isUser=false){
   const body=document.getElementById('chat-body');
@@ -2102,19 +2123,20 @@ function bubble(html,isUser=false){
   w.className='msg-group fu';
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;'+(isUser?'flex-direction:row-reverse;':'');
   w.innerHTML=isUser?`<div class="user-bubble">${html}</div>`:`${avatar()}<div style="flex:1;min-width:0;">${html}</div>`;
-  body.appendChild(w);body.scrollTop=body.scrollHeight;syncChatTopCompact();
+  body.appendChild(w);scrollChatToGroup(w);syncChatTopCompact();
 }
 function showTyping(){
   const body=document.getElementById('chat-body');
   const el=document.createElement('div');el.id='typing';el.className='msg-group fu';el.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   el.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble" style="margin-bottom:0;"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
-  body.appendChild(el);body.scrollTop=body.scrollHeight;syncChatTopCompact();
+  body.appendChild(el);scrollChatToGroup(el);syncChatTopCompact();
 }
 function rmTyping(){const el=document.getElementById('typing');if(el)el.remove();syncChatTopCompact();}
 function stars(r){const f=Math.round(r);return'★'.repeat(f)+'☆'.repeat(5-f);}
 
 // card() - eyebrow is now vibeTag(), short and clean
 function card(p){
+  p=enrichPlaceTags(p);
   const sv=S.saved.includes(p.id);
   const vt=vibeTag(p);
   const img=placeThumbUrl(p);
@@ -2139,8 +2161,105 @@ function card(p){
   </div>`;
 }
 
-function match(q,catO){
+// ── Match diversity: rotate surfaces + light engagement (local only) ──
+const FRANK_SHOW_KEY='frank_cat_surface_v1';
+const FRANK_ENG_KEY='frank_place_engagement_v1';
+function frankLoadJson(k,fb){try{const v=localStorage.getItem(k);if(v==null)return fb;return JSON.parse(v);}catch(e){return fb;}}
+function frankSaveJson(k,v){try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}}
+function frankHashStr(s){let h=0;const t=String(s).slice(0,96);for(let i=0;i<t.length;i++)h=((h<<5)-h)+t.charCodeAt(i)|0;return String(h);}
+function recordCatSurface(catKey, ids){
+  if(!catKey||!ids||!ids.length)return;
+  const h=frankLoadJson(FRANK_SHOW_KEY,{});
+  const prev=Array.isArray(h[catKey])?h[catKey]:[];
+  h[catKey]=[...ids,...prev.filter(id=>!ids.includes(id))].slice(0,72);
+  frankSaveJson(FRANK_SHOW_KEY,h);
+}
+function recordPlaceEngagement(id, kind){
+  if(!id)return;
+  const e=frankLoadJson(FRANK_ENG_KEY,{});
+  const cur=e[id]||{o:0,s:0};
+  if(kind==='open')cur.o=(cur.o||0)+1;
+  if(kind==='save')cur.s=(cur.s||0)+1;
+  e[id]=cur;
+  frankSaveJson(FRANK_ENG_KEY,e);
+}
+/** Infer tags/chips for batch-import rows so category chips + match() scoring vary. */
+function enrichPlaceTags(p){
+  if(!p||p.id==null)return p;
+  const frank=String(p.frank||'');
+  if(!p.needsQA||frank.indexOf('batch import')===-1)return p;
+  const tags=new Set([...(p.tags||[])]);
+  const hood=(p.hood||'').toLowerCase();
+  const nm=(p.name||'').toLowerCase();
+  const addr=String(p.addr||'').toLowerCase();
+  const blob=hood+' '+addr+' '+nm;
+  if(/east|cesar chavez|webberville|springdale|manor|11th|govalle|holly|tillery|springdale/.test(blob))tags.add('east austin');
+  if(/south congress|south austin|south lamar|oltorf|riverside|menchaca|s congress|s lamar|barton|zilker/.test(blob))tags.add('south austin');
+  if(/hyde|drag|guadalupe|san antonio|campus|west campus|the drag|mlk|ml jr/.test(blob))tags.add('remote work');
+  if(/rainey|warehouse|2nd|downtown|brazos|colorado|seaholm|west ave/.test(blob))tags.add('downtown');
+  if(/mueller|airport|burnet|domain|north mopac/.test(blob))tags.add('mueller');
+  if(/clarksville|north loop|northloop|lamar/.test(blob)&&!tags.has('south austin'))tags.add('north austin');
+  if(p.cat==='Coffee'){tags.add('sober friendly');tags.add('remote work');}
+  if(p.cat==='Cocktails'||p.cat==='Late Night'){
+    if(/dive|honky|nickel|yellow jacket|garage|shangri|white horse|moontower|armadillo|mean eyed|nickel/.test(nm))tags.add('dive bar');
+    if(/hotel vegas|volstead|stubb|mohawk|white horse|nickel/.test(nm))tags.add('live music');
+    if(/wine|speakeasy|roosevelt|driskill|mezcal|cocktail/.test(nm+frank))tags.add('date night');
+  }
+  if(/patio|outdoor|beer garden|rooftop|deck|patio/.test(frank+nm))tags.add('outdoor');
+  if(/brew|beerworks|lazarus|abgb|hold out/.test(nm))tags.add('austin institution');
+  const chips=[...(p.chips||[])];
+  if(p.cat==='Coffee'&&chips.indexOf('work from here')===-1)chips.push('work from here');
+  if((p.cat==='Cocktails'||p.cat==='Late Night')&&chips.indexOf('date night')===-1&&/room|speakeasy|hotel|wine/.test(nm+frank))chips.push('date night');
+  return{...p,tags:[...tags],chips};
+}
+function frankShuffle(arr){
+  for(let i=arr.length-1;i>0;i--){
+    const j=Math.floor(Math.random()*(i+1));
+    const t=arr[i];
+    arr[i]=arr[j];
+    arr[j]=t;
+  }
+}
+/** Re-rank top pool: deprioritize recently surfaced ids; slight explore boost for cold spots. */
+function pickDiversePicks(ranked, catKey, limit, opts){
+  opts=opts||{};
+  if(!ranked.length)return [];
+  const categoryBrowse=!!opts.categoryBrowse;
+  const recent=frankLoadJson(FRANK_SHOW_KEY,{});
+  const recentIds=new Set((recent[catKey]||[]).slice(0,36));
+  const eng=frankLoadJson(FRANK_ENG_KEY,{});
+  const pool=ranked.slice(0,Math.min(64,ranked.length));
+  const rawSpread=pool.length>1?Math.max(...pool.map(r=>r.score))-Math.min(...pool.map(r=>r.score)):0;
+  const deco=pool.map(row=>{
+    let adj=row.score;
+    if(recentIds.has(row.id))adj-=2.15;
+    const ex=eng[row.id];
+    if(!ex||(!(ex.o)&&!(ex.s)))adj+=0.5;
+    else adj-=0.04*Math.min(16,(ex.o||0)+(ex.s||0)*2);
+    adj+=Math.random()*1.25;
+    return{...row,adj};
+  });
+  deco.sort((a,b)=>b.adj-a.adj);
+  const freeText=!!opts.freeText;
+  const shuffleTier=categoryBrowse||rawSpread<1.15||freeText;
+  if(shuffleTier){
+    let tierSize;
+    if(categoryBrowse)tierSize=Math.min(36,deco.length);
+    else if(freeText)tierSize=Math.min(16,deco.length);
+    else tierSize=Math.min(24,deco.length);
+    const tier=deco.slice(0,tierSize);
+    frankShuffle(tier);
+    return tier.slice(0,limit).map(({score,adj,...p})=>p);
+  }
+  return deco.slice(0,limit).map(({score,adj,...p})=>p);
+}
+
+function match(q,catO,moreOpts){
+  moreOpts=moreOpts||{};
+  const exclude=new Set((moreOpts.excludeIds||[]).map(Number));
   const ql=q.toLowerCase();
+  const qStr=String(q||'').trim();
+  const catKey=catO||(qStr?'_q:'+frankHashStr(qStr):'_browse');
   const wantsAlcohol=/\b(margarita|margaritas|margs|\bmarg\b|cocktail|cocktails|wine|beer|booze|get lit|tequila|mezcal|drink(ing)?\b|shots?|bar\b|buzzed|hammered)\b/i.test(q);
   const pastPregnancy=/\b(gave birth|given birth|had (my |the )?baby|postpartum|was pregnant|been pregnant|not pregnant|finally (gave|had)|new mom|new mum)\b/i.test(q);
   const soberExplicit=ql.includes('sober')||ql.includes('not drinking')||ql.includes('no alcohol')||/\bdd\b|designated driver/.test(ql);
@@ -2148,12 +2267,14 @@ function match(q,catO){
   const sober=soberExplicit||(!wantsAlcohol&&pregnantLive);
   const pet=(ql.includes('dog')||ql.includes('pup')||ql.includes('pet'));
   const kid=(ql.includes('kid')||ql.includes('child')||ql.includes('family')||ql.includes('toddler'));
-  return PLACES.filter(p=>{
+  const ranked=PLACES.filter(p=>{
+    if(exclude.has(p.id))return false;
     if(sober&&!p.sober)return false;
     if(pet&&!p.pet)return false;
     if(kid&&!p.kid)return false;
     return true;
   }).map(p=>{
+    p=enrichPlaceTags(p);
     let s=0;
     if(catO==='dive bars'){
       const blob=((p.frank||'')+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
@@ -2212,31 +2333,65 @@ function match(q,catO){
     if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||/\bmarg\b/.test(ql))&&p.id===147)s+=14;
     if(s===0)s=Math.random()*0.5;
     return{...p,score:s};
-  }).sort((a,b)=>b.score-a.score).slice(0,4);
+  }).sort((a,b)=>b.score-a.score);
+  const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim()});
+  recordCatSurface(catKey, picked.map(p=>p.id));
+  return picked;
 }
-function showCards(places,intro,lbl){
-  const gridInner=places.length?`<div class="frank-card-grid-inner" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">${places.map(card).join('')}</div>`:'';
+function showCards(places,intro,lbl,ctx){
+  ctx=ctx||{};
+  const qEnc=encodeURIComponent(ctx.q!=null?String(ctx.q):'');
+  const catEnc=ctx.catO!=null?encodeURIComponent(String(ctx.catO)):'';
+  const shownIds=places.map(p=>p.id).join(',');
+  const gridInner=places.length?`<div class="frank-card-grid-inner">${places.map(card).join('')}</div>`:'';
+  const blockWrap=places.length?`<div class="frank-card-block" data-frank-q="${qEnc}" data-frank-cat="${catEnc}" data-frank-shown="${shownIds}">${gridInner}<div class="frank-see-more-wrap"><button type="button" class="frank-see-more-btn">see more</button></div></div>`:'';
   const body=document.getElementById('chat-body');
   const w=document.createElement('div');
   w.className='msg-group fu';
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   const lt=(lbl||"frAnk's picks").replace(/</g,'&lt;');
-  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div>${intro}</div>${gridInner?`<div class="frank-card-grid">${gridInner}</div>`:''}</div>`;
-  body.appendChild(w);body.scrollTop=body.scrollHeight;syncChatTopCompact();
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div>${intro}</div>${blockWrap?`<div class="frank-card-grid">${blockWrap}</div>`:''}</div>`;
+  const seeBtn=w.querySelector('.frank-see-more-btn');
+  if(seeBtn)seeBtn.addEventListener('click',frankSeeMore);
+  body.appendChild(w);scrollChatToGroup(w);syncChatTopCompact();
+}
+function frankSeeMore(ev){
+  const btn=ev.currentTarget;
+  const block=btn.closest('.frank-card-block');
+  if(!block)return;
+  const q=decodeURIComponent(block.dataset.frankQ||'');
+  const catEnc=block.dataset.frankCat||'';
+  const catO=catEnc?decodeURIComponent(catEnc):null;
+  const shown=String(block.dataset.frankShown||'').split(',').filter(Boolean).map(Number);
+  const more=match(q,catO,{excludeIds:shown});
+  if(!more.length){
+    btn.disabled=true;
+    btn.textContent="that's the rest";
+    return;
+  }
+  const inner=block.querySelector('.frank-card-grid-inner');
+  if(inner)inner.insertAdjacentHTML('beforeend',more.map(card).join(''));
+  block.dataset.frankShown=[...shown,...more.map(p=>p.id)].join(',');
+  if(more.length<4){
+    btn.disabled=true;
+    btn.textContent="that's the rest";
+  }
+  const last=inner&&inner.lastElementChild;
+  if(last)requestAnimationFrame(()=>{try{last.scrollIntoView({behavior:'smooth',block:'nearest',inline:'end'});}catch(e){}});
 }
 function fireCat(el,cat,lbl){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
   el.classList.add('active');collapseOld();CH=[];
   bubble(lbl,true);
   const pl=match('',cat);
-  setTimeout(()=>showCards(pl,CI[cat]||'here is what makes sense.',cat),120);
+  setTimeout(()=>showCards(pl,CI[cat]||'here is what makes sense.',cat,{q:'',catO:cat}),120);
 }
 function firePrompt(q,lbl){
   collapseOld();CH=[];
   bubble(lbl,true);
   const pl=match(q,null);
   const k=lbl.replace(/^\S+\s/,'').toLowerCase();
-  setTimeout(()=>showCards(pl,PI[k]||'here is what makes sense.',"frAnk's picks"),120);
+  setTimeout(()=>showCards(pl,PI[k]||'here is what makes sense.',"frAnk's picks",{q,catO:null}),120);
 }
 
 function frankFallbackIntro(q){
@@ -2302,7 +2457,7 @@ async function sendMsg(){
   const apiKey=(typeof localStorage!=='undefined'&&localStorage.getItem('frank_anthropic_key'))||'';
   if(!apiKey){
     rmTyping();CH=[];
-    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
+    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk",{q:msg,catO:null});
     return;
   }
   try{
@@ -2337,7 +2492,7 @@ Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quick
     const text=(block&&block.text)||'';
     if(!res.ok||!text){
       CH=[];
-      showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
+      showCards(match(msg,null),frankFallbackIntro(msg),"frAnk",{q:msg,catO:null});
       return;
     }
     const flag=text.includes('[SHOW_RESULTS]');
@@ -2345,19 +2500,21 @@ Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quick
     CH.push({role:'assistant',content:clean});
     if(flag){
       CH=[];
-      showCards(match(msg,null),clean,"frAnk");
+      showCards(match(msg,null),clean,"frAnk",{q:msg,catO:null});
     }else{
       bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div>${clean}</div>`);
     }
   }catch(e){
     rmTyping();CH=[];
-    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
+    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk",{q:msg,catO:null});
   }
 }
 
 // ── FULL-SCREEN CARD MODAL ────────────────────────────────────
 function openFullCard(id){
-  const p=PLACES.find(x=>x.id===id);if(!p)return;
+  recordPlaceEngagement(id,'open');
+  const raw=PLACES.find(x=>x.id===id);if(!raw)return;
+  const p=enrichPlaceTags(raw);
   const sv=S.saved.includes(id);
   const sc=frankScore(p);
   const wsc=webReviewScore(p);
@@ -2683,6 +2840,7 @@ function toggleSave(id){
     toast('removed.');
   }else{
     S.saved.push(id);
+    recordPlaceEngagement(id,'save');
     toast('saved. good taste.');
   }
   syncSaveButtons(id);
@@ -2802,7 +2960,10 @@ function saveToList(name){
   ensureLists();
   const id=SAVE_SHEET.placeId;
   if(!id)return;
-  if(!S.saved.includes(id))S.saved.push(id);
+  if(!S.saved.includes(id)){
+    S.saved.push(id);
+    recordPlaceEngagement(id,'save');
+  }
   Object.keys(S.lists).forEach(nm=>{S.lists[nm]=((S.lists[nm]||[]).filter(x=>x!==id));});
   if(!Array.isArray(S.lists[name]))S.lists[name]=[];
   S.lists[name].push(id);

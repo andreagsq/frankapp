@@ -26,6 +26,7 @@ export const INTENT_HINT_VOCAB = {
   'remote work': ['remote work', 'wfh', 'work from here', 'laptop'],
   'live music': ['live music', 'gig', 'venue'],
   date_night: ['date night', 'date spot'],
+  late_night: ['late night', 'late-night', 'after midnight', 'open late', 'midnight'],
   wellness: ['wellness', 'yoga', 'run club'],
   kolaches: ['kolache', 'kolaches'],
   merch: ['merch', 'merchandise'],
