@@ -93,11 +93,11 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .prompt-section{border-top:1px dashed #d0c8b4;padding:8px 0 10px;width:100%;}
 .prompt-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
 .prompt-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-light);margin-bottom:5px;font-style:italic;}
-.prompts-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;padding-bottom:2px;}
+.prompts-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;padding:1px 0 3px;}
 .prompts-scroll::-webkit-scrollbar{display:none;}
-.prompts-row{display:inline-flex;gap:6px;flex-wrap:nowrap;min-width:max-content;}
-.prompt-chip{display:inline-flex;align-items:center;gap:5px;background:#fff;color:var(--ink);border:1px solid #cfc7b4;border-radius:20px;padding:7px 12px;font-family:'DM Mono',monospace;font-size:10.5px;cursor:pointer;white-space:nowrap;flex-shrink:0;line-height:1.25;}
-.prompt-chip:hover{border-color:var(--forest);color:var(--forest);}
+.prompts-row{display:flex;gap:7px;flex-wrap:nowrap;width:max-content;min-width:max-content;}
+.prompt-chip{display:inline-flex;align-items:center;gap:5px;background:var(--forest);color:var(--lime);border:1px solid rgba(28,58,42,0.88);border-radius:20px;padding:7px 13px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;white-space:nowrap;flex:0 0 auto;line-height:1.25;}
+.prompt-chip:hover{background:var(--forest-mid);border-color:var(--forest-mid);}
 
 /* CHAT */
 #chat-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
@@ -556,14 +556,16 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     <div class="cat-grid" id="cat-grid-primary" aria-label="Browse categories — scroll sideways"></div>
     <div class="prompt-section">
       <div class="prompt-label">or just ask</div>
-      <div class="prompts-row">
-        <button class="prompt-chip" onclick="firePrompt('dog friendly coffee outdoor','🐶 dogs welcome')">🐶 dogs welcome</button>
-        <button class="prompt-chip" onclick="firePrompt('date night upscale restaurant','🕯 date night')">🕯 date night</button>
-        <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 survive the night')">🌙 late night</button>
-        <button class="prompt-chip" onclick="firePrompt('best food truck austin','🚚 street food')">🚚 street food</button>
-        <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 work from here')">💻 wfh</button>
-        <button class="prompt-chip" onclick="firePrompt('live music venue bar','🎶 live music')">🎶 live music</button>
-        <button class="prompt-chip" onclick="firePrompt('casual no reservation bites','🍕 casual bites')">🍕 casual</button>
+      <div class="prompts-scroll">
+        <div class="prompts-row">
+          <button class="prompt-chip" onclick="firePrompt('dog friendly coffee outdoor','🐶 dogs welcome')">🐶 dogs welcome</button>
+          <button class="prompt-chip" onclick="firePrompt('date night upscale restaurant','🕯 date night')">🕯 date night</button>
+          <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 survive the night')">🌙 late night</button>
+          <button class="prompt-chip" onclick="firePrompt('best food truck austin','🚚 street food')">🚚 street food</button>
+          <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 work from here')">💻 wfh</button>
+          <button class="prompt-chip" onclick="firePrompt('live music venue bar','🎶 live music')">🎶 live music</button>
+          <button class="prompt-chip" onclick="firePrompt('casual no reservation bites','🍕 casual bites')">🍕 casual</button>
+        </div>
       </div>
     </div>
   </div>
@@ -2791,8 +2793,16 @@ loadFrankState();
   w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   const rawName=document.getElementById('p-name').value.trim();
   const firstName=rawName?rawName.split(' ')[0].toLowerCase():'';
-  const greeting=firstName?`hey ${firstName}.`:'hey.';
-  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greeting} i've been everywhere worth going in this city. pick a category above. <strong>live events</strong> is for shows &amp; tickets (opens the events tab). everything else here is places. or just tell me what you're after.</div></div>`;
+  const openers=[
+    "i filtered the mid already. tap a category or tell me what mood you're in.",
+    "we're not wasting your night on bad picks. throw me a vibe and i'll handle it.",
+    "you bring the chaos, i'll bring the recs. say what you're craving.",
+    "austin is full of options and most are noise. tell me what kind of night we're building.",
+    "pick a chip, pick a category, or type the exact drama and i'll sort it."
+  ];
+  const greet=firstName?`hey ${firstName}, `:'hey, ';
+  const opener=openers[Math.floor(Math.random()*openers.length)];
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</div></div>`;
   body.appendChild(w);
   syncChatTopCompact();
 })();
