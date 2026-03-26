@@ -38,12 +38,50 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .cat-bar{background:var(--cream);border-bottom:1px solid #ddd8cc;flex-shrink:0;padding:10px 0 8px;width:100%;min-height:0;}
 @media (max-width:560px){
   .cat-bar{
-    max-height:min(42vh,300px);
+    max-height:min(28vh,220px);
     overflow-y:auto;
     overflow-x:hidden;
     -webkit-overflow-scrolling:touch;
     overscroll-behavior:contain;
+    padding:6px 0 6px;
   }
+  .cat-grid{margin-bottom:4px;gap:6px;}
+  .cat-btn{
+    min-height:54px;
+    padding:6px 4px 5px;
+    gap:3px;
+  }
+  .cat-emoji{font-size:17px;}
+  .cat-label{min-height:2.2em;font-size:8px;}
+  .prompt-section{padding:5px 0 6px;}
+  .prompts-row{
+    flex-wrap:nowrap;
+    overflow-x:auto;
+    overflow-y:hidden;
+    -webkit-overflow-scrolling:touch;
+    gap:5px;
+    padding-bottom:4px;
+    margin:0 -2px;
+    scrollbar-width:none;
+  }
+  .prompts-row::-webkit-scrollbar{display:none;}
+  .prompt-chip{padding:4px 9px;font-size:8.5px;}
+}
+@media (max-width:560px){
+  #screen-chat.chat-top-compact .cat-bar{
+    max-height:min(17vh,128px);
+    padding:4px 0 4px;
+  }
+  #screen-chat.chat-top-compact .bar-label,
+  #screen-chat.chat-top-compact .prompt-label{display:none;}
+  #screen-chat.chat-top-compact .cat-grid{margin-bottom:2px;gap:4px;}
+  #screen-chat.chat-top-compact .cat-btn{min-height:44px;padding:4px 2px 3px;gap:2px;}
+  #screen-chat.chat-top-compact .cat-emoji{font-size:14px;}
+  #screen-chat.chat-top-compact .cat-label{
+    -webkit-line-clamp:1;line-clamp:1;min-height:1.15em;font-size:7px;
+  }
+  #screen-chat.chat-top-compact .prompt-section{padding:2px 0 3px;border-top-color:transparent;}
+  #screen-chat.chat-top-compact .prompt-chip{padding:3px 7px;font-size:8px;}
 }
 .bar-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:8px;}
 /* Flex wrap + centered incomplete rows (avoids one stretched cell on the last row) */
@@ -57,7 +95,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   box-sizing:border-box;
   flex:0 0 calc((100% - 16px) / 3);
   max-width:calc((100% - 16px) / 3);
-  min-height:64px;
+  min-height:58px;
 }
 @media(min-width:560px){
   .cat-btn{min-height:72px;
@@ -1234,6 +1272,7 @@ function switchTab(t){
   if(t==='profile'){renderSavedGrid();renderPhotoGrid();renderRatingDrafts();renderProfileReviews();}
   if(t==='events'){renderEventsTab();}
   if(t==='explore'){renderExploreFeed();}
+  if(t==='chat')syncChatTopCompact();
 }
 
 function tryLeaveProfile(){
@@ -1646,7 +1685,13 @@ function renderEventsTab(){
 
 function hkey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMsg();}}
 function aresize(el){el.style.height='auto';el.style.height=Math.min(el.scrollHeight,90)+'px';}
-function collapseOld(){document.getElementById('chat-body').querySelectorAll('.msg-group:not(.collapsed)').forEach(g=>{g.classList.add('collapsed');g.onclick=function(){this.classList.toggle('collapsed');};});}
+function collapseOld(){document.getElementById('chat-body').querySelectorAll('.msg-group:not(.collapsed)').forEach(g=>{g.classList.add('collapsed');g.onclick=function(){this.classList.toggle('collapsed');};});syncChatTopCompact();}
+function syncChatTopCompact(){
+  const sc=document.getElementById('screen-chat');
+  if(!sc)return;
+  const n=[...document.querySelectorAll('#chat-body .msg-group')].filter(g=>g.id!=='typing').length;
+  sc.classList.toggle('chat-top-compact',n>=2);
+}
 function avatar(){return`<div style="width:28px;height:28px;background:var(--forest);border-radius:50%;display:flex;align-items:center;justify-content:center;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:12px;color:var(--lime);flex-shrink:0;margin-top:2px;">F</div>`;}
 function bubble(html,isUser=false){
   const body=document.getElementById('chat-body');
@@ -1654,15 +1699,15 @@ function bubble(html,isUser=false){
   w.className='msg-group fu';
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;'+(isUser?'flex-direction:row-reverse;':'');
   w.innerHTML=isUser?`<div class="user-bubble">${html}</div>`:`${avatar()}<div style="flex:1;min-width:0;">${html}</div>`;
-  body.appendChild(w);body.scrollTop=body.scrollHeight;
+  body.appendChild(w);body.scrollTop=body.scrollHeight;syncChatTopCompact();
 }
 function showTyping(){
   const body=document.getElementById('chat-body');
   const el=document.createElement('div');el.id='typing';el.className='msg-group fu';el.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   el.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble" style="margin-bottom:0;"><div class="typing"><span></span><span></span><span></span></div></div></div>`;
-  body.appendChild(el);body.scrollTop=body.scrollHeight;
+  body.appendChild(el);body.scrollTop=body.scrollHeight;syncChatTopCompact();
 }
-function rmTyping(){const el=document.getElementById('typing');if(el)el.remove();}
+function rmTyping(){const el=document.getElementById('typing');if(el)el.remove();syncChatTopCompact();}
 function stars(r){const f=Math.round(r);return'★'.repeat(f)+'☆'.repeat(5-f);}
 
 // card() - eyebrow is now vibeTag(), short and clean
@@ -1767,7 +1812,7 @@ function showCards(places,intro,lbl){
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   const lt=(lbl||"frAnk's picks").replace(/</g,'&lt;');
   w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div>${intro}</div>${gridInner?`<div class="frank-card-grid">${gridInner}</div>`:''}</div>`;
-  body.appendChild(w);body.scrollTop=body.scrollHeight;
+  body.appendChild(w);body.scrollTop=body.scrollHeight;syncChatTopCompact();
 }
 function fireCat(el,cat,lbl){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
@@ -2450,6 +2495,7 @@ function triggerBetaFeedback(){
     </div></div>`;
     document.getElementById('chat-body').appendChild(w);
     document.getElementById('chat-body').scrollTop=document.getElementById('chat-body').scrollHeight;
+    syncChatTopCompact();
   },100);
 }
 
@@ -2582,6 +2628,7 @@ loadFrankState();
   const greeting=firstName?`hey ${firstName}.`:'hey.';
   w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greeting} i've been everywhere worth going in this city. pick a category above. <strong>live events</strong> is for shows &amp; tickets (opens the events tab). everything else here is places. or just tell me what you're after.</div></div>`;
   body.appendChild(w);
+  syncChatTopCompact();
 })();
 </script>
 </body>
