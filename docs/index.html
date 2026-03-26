@@ -1737,7 +1737,11 @@ function card(p){
 
 function match(q,catO){
   const ql=q.toLowerCase();
-  const sober=(ql.includes('sober')||ql.includes('pregnant')||ql.includes('not drinking')||ql.includes('no alcohol'));
+  const wantsAlcohol=/\b(margarita|margaritas|margs|\bmarg\b|cocktail|cocktails|wine|beer|booze|get lit|tequila|mezcal|drink(ing)?\b|shots?|bar\b|buzzed|hammered)\b/i.test(q);
+  const pastPregnancy=/\b(gave birth|given birth|had (my |the )?baby|postpartum|was pregnant|been pregnant|not pregnant|finally (gave|had)|new mom|new mum)\b/i.test(q);
+  const soberExplicit=ql.includes('sober')||ql.includes('not drinking')||ql.includes('no alcohol')||/\bdd\b|designated driver/.test(ql);
+  const pregnantLive=(ql.includes('pregnant')||ql.includes('expecting'))&&!pastPregnancy;
+  const sober=soberExplicit||(!wantsAlcohol&&pregnantLive);
   const pet=(ql.includes('dog')||ql.includes('pup')||ql.includes('pet'));
   const kid=(ql.includes('kid')||ql.includes('child')||ql.includes('family')||ql.includes('toddler'));
   return PLACES.filter(p=>{
@@ -1801,6 +1805,7 @@ function match(q,catO){
       if(p.cat==='Cocktails')s+=3;
     }
     if(ql.includes('lunch')&&(blobAll.includes('lunch')||(p.tags||[]).includes('lunch')))s+=8;
+    if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||/\bmarg\b/.test(ql))&&p.id===147)s+=14;
     if(s===0)s=Math.random()*0.5;
     return{...p,score:s};
   }).sort((a,b)=>b.score-a.score).slice(0,4);
@@ -1830,6 +1835,59 @@ function firePrompt(q,lbl){
   setTimeout(()=>showCards(pl,PI[k]||'here is what makes sense.',"frAnk's picks"),120);
 }
 
+function frankFallbackIntro(q){
+  const ql=q.toLowerCase();
+  const wantsAlcohol=/\b(margarita|margaritas|margs|\bmarg\b|cocktail|cocktails|wine|beer|booze|get lit|tequila|mezcal|drink(ing)?\b|shots?|bar\b|buzzed|hammered)\b/i.test(q);
+  const pastPregnancy=/\b(gave birth|given birth|had (my |the )?baby|postpartum|was pregnant|been pregnant|not pregnant|finally (gave|had)|new mom|new mum)\b/i.test(q);
+  const bigLife=pastPregnancy||/\b(engaged|fianc[eé]|wedding|new job|promoted|graduated|divorced|moved to austin)\b/i.test(q);
+  const pick=a=>a[Math.floor(Math.random()*a.length)];
+  if(bigLife&&wantsAlcohol)return pick([
+    "slay, congrats on the life update. you officially earned something loud and cold. here are margs worth your night.",
+    "okay icon behavior. baby's earthside, now we hydrate you like an adult. these spots do a proper marg.",
+    "plot twist unlocked. congrats, now it's your turn at happy hour. start here."
+  ]);
+  if(/\b(margarita|margaritas|margs|\bmarg\b)\b/i.test(q))return pick([
+    "margs? obviously. skipping the sand-bucket tourist joints. start with these.",
+    "say less. salt, lime, no regrets. these are the picks.",
+    "you want tequila respect, not regret. here."
+  ]);
+  if(wantsAlcohol)return pick([
+    "your liver texted. it said fine but make it count. these work.",
+    "let's skip the sad hotel bar arc. here's where i'd actually go.",
+    "okay we're drinking with intention tonight. start with these."
+  ]);
+  if(/\bsober|not drinking|dry january|\bdd\b/i.test(ql))return pick([
+    "respect the dry spell. these won't make you feel punished.",
+    "zero-proof era but still want a vibe. here."
+  ]);
+  if(/\bcoffee|caffeine|espresso\b/i.test(ql))return pick([
+    "you need bean juice and a chair. these hit.",
+    "coffee first, personality second. start here."
+  ]);
+  if(/\btaco|tacos\b/i.test(ql))return pick([
+    "taco gravity is real. these are the move.",
+    "you said tacos with intent. good. here."
+  ]);
+  if(/\bbbq|barbecue|brisket\b/i.test(ql))return pick([
+    "smoke beats talk. these don't play.",
+    "bbq weather in your heart? same. start here."
+  ]);
+  if(/\bbrunch\b/i.test(ql))return pick([
+    "brunch is a sport. these teams are stacked.",
+    "eggs benny energy incoming. here."
+  ]);
+  if(/\bdate|romantic|anniversary\b/i.test(ql))return pick([
+    "cute. don't blow it with a boring table. these behave.",
+    "you're trying to look interesting. i got you."
+  ]);
+  return pick([
+    "you made it to the group chat of austin recs. these slap.",
+    "no tourist-trap pity picks. start here.",
+    "i filtered the mid. you're welcome.",
+    "look, i'm not your mom but these are correct."
+  ]);
+}
+
 async function sendMsg(){
   const inp=document.getElementById('user-input');
   const msg=inp.value.trim();if(!msg)return;
@@ -1837,43 +1895,59 @@ async function sendMsg(){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
   collapseOld();bubble(msg,true);showTyping();
   CH.push({role:'user',content:msg});
+  const apiKey=(typeof localStorage!=='undefined'&&localStorage.getItem('frank_anthropic_key'))||'';
+  if(!apiKey){
+    rmTyping();CH=[];
+    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
+    return;
+  }
   try{
-    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:`You are frAnk. A deadpan, witty Austin local who gives one-sentence recommendations and nothing else.
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey},body:JSON.stringify({model:'claude-sonnet-4-20250514',max_tokens:800,system:`You are frAnk — your best friend who lives in Austin: deadpan, quick, lightly sarcastic, never cruel. hype real wins (baby, engagement, new job, survived the week). roast the situation, not the person. never sound like customer support.
 
 OUTPUT FORMAT (the only thing that should appear in your response):
-[one punchy sentence about why this place is right for this person] [SHOW_RESULTS]
+[one or two tight sentences: if they shared personal news, open with a short bff beat (congrats, that's huge, okay now we feast) then pivot to the ask. otherwise jump straight into the vibe.] [SHOW_RESULTS]
 
 If genuinely ambiguous: [one short question] [SHOW_RESULTS]
 
-HARD RULES (not optional):
+TONE EXAMPLES (match this energy, don't copy verbatim):
+GOOD: "slay, congrats on the tiny human. let's get you a marg that respects the journey." / "you survived i-35, you get a negroni and zero judgment."
+BAD (never): "here are some great options" / "i'd be happy to help" / "based on your preferences" / "i hope this helps"
+
+HARD RULES:
 - Never show reasoning, steps, filters, or process. Think silently, speak only the answer.
 - Never narrate your thinking. No "Step 1", "First", "Based on", "Given that" or similar.
-- Never use em dashes. Never use exclamation points. Never apologize. Never explain.
+- No em dashes (use commas or periods). Do not apologize or explain your process.
 - Always end with [SHOW_RESULTS]. Every single response.
-- lowercase only. one or two sentences max. no filler.
+- Mostly lowercase. slang and stretched words (slay, yesss) are fine when it fits. one exclamation is allowed for a real celebrate moment; never a pile of them.
+- Max two sentences before [SHOW_RESULTS]. no filler, no corporate tone.
 
-SILENT LOGIC (think this, never output it):
-Before answering: check if sober/pregnant guest exists (needs sober-friendly place), if dog/pet is coming (needs pet-friendly place), if kid is along (needs kid-friendly place). Match to the occasion. Find the one specific detail that makes a place right for this group. Then just say that detail.
+SILENT LOGIC (never output):
+- If they want margs / margaritas and it fits, De Nada Cantina is often the right flex (greenhouse tex-mex). still pick what matches their full message.
+- Respect sober / pregnant / kid / dog context from their words. If they are clearly celebrating and asking for drinks after birth, that is not a sober-only request.
+- Find the one specific detail that makes a place right for them, then say it like you're texting them from the car.
 
 Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quickie Pickie, The Pershing Cafe, Murray's Tavern, Little Brother Rainey, Little Brother Coffee and Kolaches, ATX Cocina, La Santa Barbacha, Oria, Casa Bianca, Lou's Eastside, Josephine House, Ranch 616, Midnight Cravingz, Tacos Las Amazonas, Radius Butcher and Grocery, The Well, Birdie's, Hokkaisan, Patrizi's, Gina's on Congress, Lutie's, Holiday on 7th, Lil' Easy, Jacoby's, Allday Pizza Hyde Park, Brunch Brunch Baby, June's, Nixta Taqueria, Este, Casino El Camino, El Marisquero Seafood, Better Half Coffee and Cocktails, Cuantos Tacos, Franklin Barbecue, Stubb's Bar-B-Q, la Barbecue, Cosmic Saltillo, Loudmouth, Paperboy, San Gines Austin, Taquero Mucho, Suerte, Terry Black's Barbecue, De Nada Cantina.`,messages:CH})});
     const data=await res.json();
     rmTyping();
-    const text=data.content[0].text;
+    const block=data&&data.content&&data.content[0];
+    const text=(block&&block.text)||'';
+    if(!res.ok||!text){
+      CH=[];
+      showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
+      return;
+    }
     const flag=text.includes('[SHOW_RESULTS]');
     const clean=text.replace('[SHOW_RESULTS]','').trim();
     CH.push({role:'assistant',content:clean});
     if(flag){
       CH=[];
-      const pl=match(msg,null);
-      showCards(pl,clean,"frAnk");
+      showCards(match(msg,null),clean,"frAnk");
     }else{
       bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div>${clean}</div>`);
     }
   }catch(e){
     rmTyping();CH=[];
-    const pl=match(msg,null);
-    const fallbacks=['here is what i would go to.','pulled a few that match what you said.','start with these.'];
-    showCards(pl,fallbacks[Math.floor(Math.random()*fallbacks.length)],"frAnk");
+    showCards(match(msg,null),frankFallbackIntro(msg),"frAnk");
   }
 }
 
