@@ -133,6 +133,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .card-meta{font-family:'DM Mono',monospace;font-size:9.5px;color:var(--ink);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
 .card-frank{font-family:'DM Mono',monospace;font-size:10.5px;color:var(--forest);margin-top:6px;line-height:1.5;border-left:2px solid var(--lime);padding-left:6px;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
 .card-frank-label{display:inline-block;font-size:9px;color:var(--ink);letter-spacing:0.06em;margin-right:5px;}
+.card-tip{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);margin-top:5px;line-height:1.45;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.card-tip-label{font-size:8px;color:var(--ink-ghost);margin-right:4px;text-transform:uppercase;letter-spacing:0.05em;}
 .card-actions{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;margin-top:6px;}
 .card-btn{padding:5px 0;font-family:'DM Mono',monospace;font-size:8.5px;border:1px solid #ddd8cc;background:transparent;color:var(--ink);cursor:pointer;border-radius:3px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;}
 .card-btn:hover{border-color:var(--forest);color:var(--forest);}
@@ -388,7 +390,9 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .list-folder-body::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lime);}
 .list-folder-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;padding-left:4px;}
 .list-folder-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:var(--forest);line-height:1.15;}
-.list-privacy-icon{font-size:12px;line-height:1;width:16px;text-align:center;color:var(--forest);}
+.list-privacy-chip{display:inline-flex;border:1px solid #c8c0ac;border-radius:14px;overflow:hidden;background:#fff;}
+.list-privacy-chip button{font-family:'DM Mono',monospace;font-size:7px;padding:4px 7px;border:none;background:transparent;color:var(--ink-light);cursor:pointer;text-transform:uppercase;letter-spacing:0.04em;}
+.list-privacy-chip button.on{background:var(--forest);color:var(--lime);}
 .list-folder-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);line-height:1.4;margin-top:4px;}
 .list-folder-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
 .list-folder-tag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 7px;border-radius:9px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);}
@@ -398,10 +402,10 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .list-create-card{border:1px dashed #bfb6a1;background:#f7f2e7;display:flex;align-items:center;justify-content:center;min-height:128px;cursor:pointer;}
 .list-create-inner{font-family:'DM Mono',monospace;font-size:10px;color:var(--forest);text-align:center;}
 .list-cover-frame{position:relative;width:100%;height:120px;border:1px solid #ddd8cc;border-radius:8px;overflow:hidden;background:#0f261b;margin-bottom:8px;}
-.list-cover-frame img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none;max-height:none;display:block;}
+.list-cover-frame img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(1.15);max-width:none;max-height:none;display:block;touch-action:none;cursor:grab;}
+.list-cover-frame.dragging img{cursor:grabbing;}
 .list-cover-tools{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px;}
-.list-cover-tools label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);display:flex;align-items:center;gap:8px;}
-.list-cover-tools input[type="range"]{flex:1;}
+.list-cover-help{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);}
 .list-cover-remove{font-family:'DM Mono',monospace;font-size:9px;padding:8px;border:1px solid #c8c0ac;border-radius:6px;background:#fff;color:var(--ink);cursor:pointer;}
 .priv-toggle{display:inline-flex;border:1px solid #c8c0ac;border-radius:16px;overflow:hidden;background:var(--cream);}
 .priv-toggle button{font-family:'DM Mono',monospace;font-size:7px;padding:5px 8px;border:none;cursor:pointer;background:transparent;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.04em;}
@@ -421,6 +425,9 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .explore-card-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:var(--forest);line-height:1.15;padding-right:36px;}
 .explore-card-by{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-mid);letter-spacing:0.06em;margin-top:6px;}
 .explore-card-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:4px;}
+.explore-card-actions{margin-top:8px;display:flex;justify-content:flex-end;}
+.explore-list-save{font-family:'DM Mono',monospace;font-size:8px;padding:4px 8px;border-radius:10px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);cursor:pointer;}
+.explore-list-save.on{background:#e8f2e3;border-color:#93b686;color:#2d5a40;}
 .explore-preview-overlay{position:fixed;inset:0;background:rgba(26,26,15,0.55);z-index:280;display:none;align-items:flex-end;justify-content:center;}
 .explore-preview-overlay.open{display:flex;}
 .explore-preview-panel{background:var(--cream);border-top:2px solid var(--forest);border-radius:16px 16px 0 0;width:100%;max-height:88vh;display:flex;flex-direction:column;box-shadow:0 -12px 32px rgba(0,0,0,0.2);}
@@ -762,7 +769,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     <div class="explore-preview-scroll" id="explore-preview-spots"></div>
     <div class="explore-preview-foot">
       <button type="button" class="gbtn" style="width:100%;margin-bottom:10px;border-radius:8px;padding:10px;" onclick="openExploreCoverStudio()">cover art · presets, upload, or generate</button>
-      <button type="button" class="explore-copy-btn" onclick="openCopyExploreSheet()">copy to my lists</button>
+      <button type="button" class="explore-copy-btn" onclick="openCopyExploreSheet()">save list</button>
     </div>
   </div>
 </div>
@@ -954,9 +961,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
         <img id="list-editor-cover-preview" alt=""/>
       </div>
       <div id="list-cover-tools" class="list-cover-tools" style="display:none;">
-        <label>zoom <input id="list-cover-zoom" type="range" min="1" max="3" step="0.01" value="1" oninput="setListCoverTransform()"/></label>
-        <label>x <input id="list-cover-x" type="range" min="-50" max="50" step="1" value="0" oninput="setListCoverTransform()"/></label>
-        <label>y <input id="list-cover-y" type="range" min="-50" max="50" step="1" value="0" oninput="setListCoverTransform()"/></label>
+        <div class="list-cover-help">drag image in frame to adjust preview.</div>
         <button type="button" class="list-cover-remove" onclick="removeListCover()">remove cover photo</button>
       </div>
     </div>
@@ -1054,6 +1059,29 @@ function placeGalleryUrls(p){
 function cleanFrankLine(txt){
   return String(txt||'').replace(/^\s*frank\s*:\s*/i,'').replace(/^\s*frank says\s*:\s*/i,'').trim();
 }
+function insiderTipFromPlace(p){
+  const frank=cleanFrankLine(p.frank).toLowerCase();
+  const nm=(p.name||'').toLowerCase();
+  const tags=(p.tags||[]).map(t=>String(t).toLowerCase());
+  const chips=(p.chips||[]).map(c=>String(c).toLowerCase());
+  const candidates=[];
+  if(nm.includes('allday pizza'))candidates.push('order the pickle pizza, then hit first light books next door.');
+  if(tags.includes('brunch')||chips.includes('day drink'))candidates.push('go early, this one gets crowded fast once brunch hits.');
+  if(tags.includes('live music'))candidates.push('check the nightly lineup before you go, the room changes with the set.');
+  if(tags.includes('outdoor'))candidates.push('patio seats go first, ask for outside when you check in.');
+  if(tags.includes('remote work'))candidates.push('grab a wall seat first, those plug spots disappear early.');
+  if(tags.includes('late night'))candidates.push('this one is best after 10, that is when the vibe actually wakes up.');
+  if(p.cat==='Cocktails')candidates.push('order the house margarita first, then branch out.');
+  if(p.cat==='Coffee')candidates.push('skip the basics, ask what roast they are featuring today.');
+  if(p.cat==='Dinner')candidates.push('split one signature plate for the table, then build around it.');
+  const tip=candidates.find(t=>{
+    const tnorm=t.toLowerCase().replace(/[^a-z0-9\s]/g,'');
+    const words=tnorm.split(/\s+/).filter(w=>w.length>4);
+    const overlap=words.filter(w=>frank.includes(w)).length;
+    return overlap<2;
+  });
+  return tip||'ask what regulars order, that is usually the best move here.';
+}
 function friendReviewsHTML(p){
   const rows=[
     {name:'MIA',friend:true,following:true,stars:Math.min(5,4+(p.id%2)),text:'would drag my whole group here again. no notes.'},
@@ -1125,6 +1153,35 @@ const GLOBAL_EXPLORE_LISTS=[
   {id:'gx8',title:'Rainey St. If You Must',creator:'DEV',placeIds:[106,144,125],coverIndex:7}
 ];
 let EXPLORE_ACTIVE_ID=null;
+function userListExploreId(name){return`u:${encodeURIComponent(name)}`;}
+function parseUserListExploreId(id){return id&&id.startsWith('u:')?decodeURIComponent(id.slice(2)):null;}
+function getPublicUserExploreLists(){
+  ensureLists();ensureListPrivacy();
+  const me=(document.getElementById('p-name')?.value||'you').trim().toUpperCase()||'YOU';
+  return getAllListNames().filter(nm=>S.listPrivacy[nm]==='public').map((nm,idx)=>({
+    id:userListExploreId(nm),title:listDisplayName(nm),creator:me,placeIds:sanitizePlaceIds(S.lists[nm]||[]),coverIndex:idx%EXPLORE_COVER_PRESETS.length,isUserList:true,listName:nm
+  }));
+}
+function getExploreListsMerged(){return GLOBAL_EXPLORE_LISTS.concat(getPublicUserExploreLists());}
+function getExploreListById(id){return getExploreListsMerged().find(x=>x.id===id)||null;}
+function isExploreListSaved(id){S.savedExploreLists=S.savedExploreLists||{};return !!S.savedExploreLists[id];}
+function saveExploreListToMine(id){
+  const L=getExploreListById(id);if(!L)return;
+  const target=`Saved: ${L.title}`;
+  ensureLists();ensureListPrivacy();ensureListMeta();
+  if(!S.lists[target])S.lists[target]=[];
+  sanitizePlaceIds(L.placeIds).forEach(pid=>{
+    if(!S.saved.includes(pid))S.saved.push(pid);
+    if(!S.lists[target].includes(pid))S.lists[target].push(pid);
+  });
+  S.listPrivacy[target]='private';
+  if(!S.listMeta[target])S.listMeta[target]={desc:`saved from ${L.creator}`,tags:['saved list']};
+  S.savedExploreLists=S.savedExploreLists||{};
+  S.savedExploreLists[id]=true;
+  persistFrankState();
+  renderSavedGrid();
+  renderListFolders();
+}
 const FRANK_LS_KEY='frank-app-state-v1';
 const DEFAULT_LIST_NAMES=['Morning Rituals','Late Night Moves','The Vault'];
 function listDisplayName(nm){
@@ -1149,7 +1206,7 @@ const CE={'Coffee':'☕','Cocktails':'🍸','Dinner':'🍽️','Late Night':'�
 const CI={'Coffee':'coffee-first spots: morning fuel, not a full bar night.','Cocktails':'drinks-led: bars, wine bars, cocktail rooms.','Dinner':'sit-down meals worth planning around.','Late Night':'open late, after-hours, dives, midnight food.','Quick Bite':'trucks, counters, bbq lines, fast tacos. get in and out.','dive bars':'dive-bar energy: dark, casual, and actually welcoming after-hours.','outdoors':'outdoor tables and fresh air: patios, gardens, and anywhere you can breathe.','wellness':'wellness-friendly spots: sober-friendly, balanced, and feel-good food.','patios + rooftops':'rooftops + patios: outside air, sometimes a view.','music':'where live music shows up in the room.','brunch':'day drinking adjacent: brunch energy.'};
 const PI={'bring your doggo':'yes, your dog can absolutely come.','date night':'you need a spot that feels like effort without being cringe.','late night':'open late, good energy, no panic at 11:30.','remote work':'wifi, plugs, caffeine, and nobody rushing you out.','parent friendly':'kid-safe, parent-sane, still good food.','let loose':'okay, we are outside tonight. start with these.','hit the dance floor':'you want movement, music, and no dead crowd.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
 
-let S={saved:[],lists:{},listPrivacy:{},listMeta:{},listCovers:{},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
+let S={saved:[],lists:{},listPrivacy:{},listMeta:{},listCovers:{},savedExploreLists:{},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
 let SAVE_SHEET={open:false,placeId:null};
 
 function resolveExploreCoverUrl(listId,defaultIdx){
@@ -1184,18 +1241,13 @@ function ensureListMeta(){
   });
 }
 let LIST_COVER_SRC='';
-function getListCoverState(){
-  return{
-    zoom:parseFloat(document.getElementById('list-cover-zoom')?.value||'1'),
-    x:parseFloat(document.getElementById('list-cover-x')?.value||'0'),
-    y:parseFloat(document.getElementById('list-cover-y')?.value||'0')
-  };
-}
+let LIST_COVER_POS={x:0,y:0,drag:false,sx:0,sy:0};
+function getListCoverState(){return{x:LIST_COVER_POS.x,y:LIST_COVER_POS.y};}
 function setListCoverTransform(){
   const img=document.getElementById('list-editor-cover-preview');
   if(!img||!LIST_COVER_SRC)return;
   const st=getListCoverState();
-  img.style.transform=`translate(calc(-50% + ${st.x}px), calc(-50% + ${st.y}px)) scale(${st.zoom})`;
+  img.style.transform=`translate(calc(-50% + ${st.x}px), calc(-50% + ${st.y}px)) scale(1.15)`;
 }
 function setListCoverUI(src,opts){
   const frame=document.getElementById('list-cover-frame');
@@ -1207,17 +1259,45 @@ function setListCoverUI(src,opts){
     frame.style.display='none';
     tools.style.display='none';
     img.removeAttribute('src');
+    LIST_COVER_POS={x:0,y:0,drag:false,sx:0,sy:0};
     return;
   }
   img.src=src;
   frame.style.display='block';
   tools.style.display='grid';
-  document.getElementById('list-cover-zoom').value=String(opts&&opts.zoom||1);
-  document.getElementById('list-cover-x').value=String(opts&&opts.x||0);
-  document.getElementById('list-cover-y').value=String(opts&&opts.y||0);
+  LIST_COVER_POS.x=opts&&typeof opts.x==='number'?opts.x:0;
+  LIST_COVER_POS.y=opts&&typeof opts.y==='number'?opts.y:0;
+  bindListCoverDrag();
   setListCoverTransform();
 }
 function removeListCover(){setListCoverUI('');}
+function bindListCoverDrag(){
+  const frame=document.getElementById('list-cover-frame');
+  if(!frame||frame.dataset.bound==='1')return;
+  frame.dataset.bound='1';
+  frame.addEventListener('pointerdown',e=>{
+    if(!LIST_COVER_SRC)return;
+    LIST_COVER_POS.drag=true;
+    LIST_COVER_POS.sx=e.clientX-LIST_COVER_POS.x;
+    LIST_COVER_POS.sy=e.clientY-LIST_COVER_POS.y;
+    frame.classList.add('dragging');
+    frame.setPointerCapture(e.pointerId);
+  });
+  frame.addEventListener('pointermove',e=>{
+    if(!LIST_COVER_POS.drag)return;
+    LIST_COVER_POS.x=Math.max(-90,Math.min(90,e.clientX-LIST_COVER_POS.sx));
+    LIST_COVER_POS.y=Math.max(-70,Math.min(70,e.clientY-LIST_COVER_POS.sy));
+    setListCoverTransform();
+  });
+  const endDrag=e=>{
+    if(!LIST_COVER_POS.drag)return;
+    LIST_COVER_POS.drag=false;
+    frame.classList.remove('dragging');
+    if(e&&typeof e.pointerId==='number')try{frame.releasePointerCapture(e.pointerId);}catch(_e){}
+  };
+  frame.addEventListener('pointerup',endDrag);
+  frame.addEventListener('pointercancel',endDrag);
+}
 function findListForPlaceId(id){
   ensureLists();
   const names=getAllListNames();
@@ -1266,8 +1346,8 @@ function openListEditor(existingName){
   if(pre){
     const rawCover=isEdit?(S.listCovers&&S.listCovers[key]||''):'';
     let src='';
-    let opts={zoom:1,x:0,y:0};
-    if(rawCover&&typeof rawCover==='object'){src=rawCover.src||'';opts={zoom:rawCover.zoom||1,x:rawCover.x||0,y:rawCover.y||0};}
+    let opts={x:0,y:0};
+    if(rawCover&&typeof rawCover==='object'){src=rawCover.src||'';opts={x:rawCover.x||0,y:rawCover.y||0};}
     else src=rawCover||'';
     setListCoverUI(src,opts);
   }
@@ -1312,7 +1392,7 @@ function saveListEditor(){
   const cover=LIST_COVER_SRC||'';
   if(cover&&/^data:image\//.test(cover)){
     const st=getListCoverState();
-    S.listCovers[raw]={src:cover,zoom:st.zoom,x:st.x,y:st.y};
+    S.listCovers[raw]={src:cover,x:st.x,y:st.y};
   }else delete S.listCovers[raw];
   markProfileDirty();
   renderListFolders();
@@ -1350,6 +1430,7 @@ function persistFrankState(){
       listPrivacy:{...S.listPrivacy},
       listMeta:{...(S.listMeta||{})},
       listCovers:{...(S.listCovers||{})},
+      savedExploreLists:{...(S.savedExploreLists||{})},
       reviews:S.reviews|0,
       reviewPhotos:Array.isArray(S.reviewPhotos)?S.reviewPhotos.map(ph=>({src:ph.src,placeId:ph.placeId||null,pub:ph.pub!==false})):[],
       avatarUrl:S.avatarUrl||null,
@@ -1398,6 +1479,7 @@ function loadFrankState(){
     if(data.listPrivacy&&typeof data.listPrivacy==='object')Object.keys(data.listPrivacy).forEach(nm=>{if(data.listPrivacy[nm]==='private'||data.listPrivacy[nm]==='public')S.listPrivacy[nm]=data.listPrivacy[nm];});
     if(data.listMeta&&typeof data.listMeta==='object')S.listMeta={...data.listMeta};
     if(data.listCovers&&typeof data.listCovers==='object')S.listCovers={...data.listCovers};
+    if(data.savedExploreLists&&typeof data.savedExploreLists==='object')S.savedExploreLists={...data.savedExploreLists};
     ensureListMeta();
     if(typeof data.avatarUrl==='string')S.avatarUrl=data.avatarUrl;
     if(data.account&&typeof data.account==='object')S.account={...S.account,...data.account};
@@ -1468,18 +1550,18 @@ function renderListFolders(){
     const desc=String(meta.desc||'').trim();
     const tags=(meta.tags||[]).slice(0,3).map(t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'));
     const cover=S.listCovers&&S.listCovers[nm];
-    const covObj=(cover&&typeof cover==='object')?cover:{src:String(cover||''),zoom:1,x:0,y:0};
-    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(${covObj.zoom||1});width:100%;height:100%;object-fit:cover;"`;
+    const covObj=(cover&&typeof cover==='object')?cover:{src:String(cover||''),x:0,y:0};
+    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(1.15);width:100%;height:100%;object-fit:cover;"`;
     const thumb=(covObj.src)
       ?`<div class="list-folder-visual"><img src="${String(covObj.src).replace(/"/g,'&quot;')}" alt="" ${covStyle}/></div>`
       :first
         ?`<div class="list-folder-visual"><img src="${placeThumbUrl(first).replace(/"/g,'&quot;')}" alt=""/></div>`
         :`<div class="list-folder-visual" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--forest) 0%,var(--forest-mid) 100%);"><span style="font-size:30px;line-height:1;" aria-hidden="true">${listFolderEmoji(nm)}</span></div>`;
-    const privIcon=isPriv?'🔒':'🌍';
+    const privChip=`<span class="list-privacy-chip" onclick="event.stopPropagation();"><button type="button" class="${!isPriv?'on':''}" onclick="setListPrivacy('${esc}',false)">public</button><button type="button" class="${isPriv?'on':''}" onclick="setListPrivacy('${esc}',true)">private</button></span>`;
     const row=`<div class="list-privacy-row" onclick="event.stopPropagation();"><div class="list-row-actions"><button type="button" class="list-mini-btn" onclick="openListEditor('${esc}')">edit</button><button type="button" class="list-mini-btn" onclick="shareList('${esc}')">share</button></div></div>`;
     const tagRow=tags.length?`<div class="list-folder-tags">${tags.map(t=>`<span class="list-folder-tag">${t}</span>`).join('')}</div>`:'';
     const descRow=desc?`<div class="list-folder-sub">${desc.replace(/</g,'&lt;')}</div>`:'';
-    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div><span class="list-privacy-icon" title="${isPriv?'private':'public'}">${privIcon}</span></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);padding-left:4px;">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
+    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div>${privChip}</div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);padding-left:4px;">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
   });
   cards.unshift(`<div class="list-folder-card list-create-card" onclick="openListEditor()"><div class="list-create-inner">+ create list<br/>name, tags, cover, share</div></div>`);
   wrap.innerHTML=cards.join('');
@@ -1534,33 +1616,43 @@ function markProfileDirty(){S.profileDirty=true;}
 function renderExploreFeed(){
   const el=document.getElementById('explore-feed');
   if(!el)return;
-  el.innerHTML=GLOBAL_EXPLORE_LISTS.map(L=>{
+  el.innerHTML=getExploreListsMerged().map(L=>{
     const ids=sanitizePlaceIds(L.placeIds);
     const n=ids.length;
     const safeTitle=L.title.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const safeCreator=L.creator.replace(/&/g,'&amp;').replace(/</g,'&lt;');
-    const cov=resolveExploreCoverUrl(L.id,L.coverIndex||0).replace(/"/g,'&quot;');
+    const coverSource=L.isUserList?(S.listCovers&&S.listCovers[L.listName]||''):resolveExploreCoverUrl(L.id,L.coverIndex||0);
+    const covObj=(coverSource&&typeof coverSource==='object')?coverSource:{src:String(coverSource||''),x:0,y:0};
+    const cov=(covObj.src||'').replace(/"/g,'&quot;');
+    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(1.15);width:100%;height:100%;object-fit:cover;"`;
+    const saved=isExploreListSaved(L.id);
     return`<button type="button" class="explore-feed-card fu" onclick="openExplorePreview('${L.id}')">
-      <div class="explore-card-cover"><img src="${cov}" alt="" loading="lazy"/></div>
+      <div class="explore-card-cover">${cov?`<img src="${cov}" alt="" loading="lazy" ${covStyle}/>`:''}</div>
       <div class="explore-card-body">
         <span class="explore-card-sticker" aria-hidden="true">✨</span>
         <div class="explore-card-title">${safeTitle}</div>
         <div class="explore-card-by"><span style="letter-spacing:0.06em;">BY:</span> ${safeCreator}</div>
         <div class="explore-card-meta">${spotCountLabel(n)}</div>
+        <div class="explore-card-actions"><span class="explore-list-save${saved?' on':''}" onclick="event.stopPropagation();saveExploreListToMine('${L.id}');renderExploreFeed();">${saved?'saved list':'save list'}</span></div>
       </div>
     </button>`;
   }).join('');
 }
 
 function openExplorePreview(listId){
-  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===listId);
+  const L=getExploreListById(listId);
   if(!L)return;
   EXPLORE_ACTIVE_ID=listId;
   const ids=sanitizePlaceIds(L.placeIds);
   document.getElementById('explore-preview-title').textContent=L.title;
   document.getElementById('explore-preview-by').textContent=`BY: ${L.creator} · ${spotCountLabel(ids.length)}`;
   const cimg=document.getElementById('explore-preview-cover-img');
-  if(cimg)cimg.src=resolveExploreCoverUrl(L.id,L.coverIndex||0);
+  if(cimg){
+    const coverSource=L.isUserList?(S.listCovers&&S.listCovers[L.listName]||''):resolveExploreCoverUrl(L.id,L.coverIndex||0);
+    const covObj=(coverSource&&typeof coverSource==='object')?coverSource:{src:String(coverSource||''),x:0,y:0};
+    cimg.src=(covObj.src||'');
+    cimg.style.transform=`translate(calc(${covObj.x||0}px), calc(${covObj.y||0}px)) scale(1.15)`;
+  }
   const spotEl=document.getElementById('explore-preview-spots');
   spotEl.innerHTML=ids.map(id=>{
     const p=PLACES.find(x=>x.id===id);
@@ -1586,6 +1678,12 @@ function openExplorePreview(listId){
     </div>`;
   }).join('');
   document.getElementById('explore-preview-overlay').classList.add('open');
+  const saveBtn=document.querySelector('.explore-preview-foot .explore-copy-btn');
+  if(saveBtn){
+    const saved=isExploreListSaved(L.id);
+    saveBtn.textContent=saved?'saved list':'save list';
+    saveBtn.onclick=()=>{saveExploreListToMine(L.id);saveBtn.textContent='saved list';renderExploreFeed();};
+  }
   document.body.style.overflow='hidden';
 }
 
@@ -1680,7 +1778,7 @@ function onExploreCoverFile(ev){
 
 function openCopyExploreSheet(){
   if(!EXPLORE_ACTIVE_ID)return;
-  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
+  const L=getExploreListById(EXPLORE_ACTIVE_ID);
   if(!L)return;
   const ids=sanitizePlaceIds(L.placeIds);
   const n=ids.length;
@@ -1721,7 +1819,7 @@ function closeCopyExploreSheet(){
 
 function copyExploreToMyList(listName){
   if(!EXPLORE_ACTIVE_ID)return;
-  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
+  const L=getExploreListById(EXPLORE_ACTIVE_ID);
   if(!L)return;
   const ids=sanitizePlaceIds(L.placeIds);
   if(!ids.length){closeCopyExploreSheet();return;}
@@ -1944,6 +2042,7 @@ function card(p){
   const sv=S.saved.includes(p.id);
   const vt=vibeTag(p);
   const img=placeThumbUrl(p);
+  const insiderTip=insiderTipFromPlace(p).replace(/</g,'&lt;');
   return`<div class="place-card fu">
     <div class="card-img" onclick="openFullCard(${p.id})" style="cursor:pointer;">
       <img src="${img}" alt="${p.name}" onerror="this.style.display='none'" loading="lazy"/>
@@ -1954,6 +2053,7 @@ function card(p){
       <div class="card-name" onclick="openFullCard(${p.id})" style="cursor:pointer;">${p.name}</div>
       <div class="card-meta">${p.hood} &middot; ${p.price}</div>
       <div class="card-frank"><span class="card-frank-label">frAnk says:</span>${cleanFrankLine(p.frank).replace(/</g,'&lt;')}</div>
+      <div class="card-tip"><span class="card-tip-label">insider tip:</span>${insiderTip}</div>
       <div class="card-actions">
         <button class="card-btn${sv?' saved':''}" id="sb-${p.id}" onclick="openSaveSheet(${p.id})">${sv?'♥ saved':'♡ save'}</button>
         <button class="card-btn" onclick="openShare(${p.id})">↗ share</button>
@@ -2995,6 +3095,7 @@ window.handleListCoverInput=handleListCoverInput;
 window.setListCoverTransform=setListCoverTransform;
 window.removeListCover=removeListCover;
 window.shareList=shareList;
+window.saveExploreListToMine=saveExploreListToMine;
 window.triggerBetaFeedback=triggerBetaFeedback;
 window.openFeedbackModal=openFeedbackModal;
 window.closeFeedbackModal=closeFeedbackModal;
