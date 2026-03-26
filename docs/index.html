@@ -380,22 +380,29 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .explore-cover-actions{display:flex;flex-direction:column;gap:8px;margin-top:12px;}
 .explore-cover-gen-row{display:flex;gap:8px;align-items:center;flex-wrap:wrap;}
 .explore-cover-gen-row input[type="color"]{width:44px;height:36px;border:1px solid #c8c0ac;border-radius:6px;padding:0;cursor:pointer;}
-.list-folder-card{background:var(--cream-dark);border:1px solid #d0c8b4;border-radius:8px;padding:0;overflow:hidden;display:flex;flex-direction:column;}
-.list-folder-visual{height:72px;background:var(--forest);position:relative;flex-shrink:0;}
+.list-folder-card{background:var(--cream-dark);border:1.5px solid var(--forest);border-radius:12px;padding:0;overflow:hidden;display:flex;flex-direction:column;}
+.list-folder-visual{height:88px;background:var(--forest);position:relative;flex-shrink:0;}
 .list-folder-visual img{width:100%;height:100%;object-fit:cover;display:block;}
 .list-folder-visual .list-folder-emoji{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:28px;background:rgba(28,58,42,0.35);}
-.list-folder-body{padding:10px 12px 12px;}
-.list-folder-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
-.list-folder-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;color:var(--forest);line-height:1.15;}
+.list-folder-body{padding:10px 10px 12px;position:relative;flex:1;}
+.list-folder-body::before{content:'';position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--lime);}
+.list-folder-head{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:4px;padding-left:4px;}
+.list-folder-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;color:var(--forest);line-height:1.15;}
+.list-privacy-icon{font-size:12px;line-height:1;width:16px;text-align:center;color:var(--forest);}
 .list-folder-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);line-height:1.4;margin-top:4px;}
 .list-folder-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
 .list-folder-tag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 7px;border-radius:9px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);}
-.list-privacy-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(28,58,42,0.12);}
-.list-privacy-pill{font-family:'DM Mono',monospace;font-size:8px;padding:3px 7px;border-radius:10px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);text-transform:uppercase;letter-spacing:0.04em;}
-.list-row-actions{display:flex;align-items:center;gap:6px;}
+.list-privacy-row{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:9px;padding-top:8px;border-top:1px solid rgba(28,58,42,0.12);}
+.list-row-actions{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;}
 .list-mini-btn{font-family:'DM Mono',monospace;font-size:8px;padding:4px 8px;border-radius:10px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);cursor:pointer;}
 .list-create-card{border:1px dashed #bfb6a1;background:#f7f2e7;display:flex;align-items:center;justify-content:center;min-height:128px;cursor:pointer;}
 .list-create-inner{font-family:'DM Mono',monospace;font-size:10px;color:var(--forest);text-align:center;}
+.list-cover-frame{position:relative;width:100%;height:120px;border:1px solid #ddd8cc;border-radius:8px;overflow:hidden;background:#0f261b;margin-bottom:8px;}
+.list-cover-frame img{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);max-width:none;max-height:none;display:block;}
+.list-cover-tools{display:grid;grid-template-columns:1fr;gap:6px;margin-bottom:10px;}
+.list-cover-tools label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);display:flex;align-items:center;gap:8px;}
+.list-cover-tools input[type="range"]{flex:1;}
+.list-cover-remove{font-family:'DM Mono',monospace;font-size:9px;padding:8px;border:1px solid #c8c0ac;border-radius:6px;background:#fff;color:var(--ink);cursor:pointer;}
 .priv-toggle{display:inline-flex;border:1px solid #c8c0ac;border-radius:16px;overflow:hidden;background:var(--cream);}
 .priv-toggle button{font-family:'DM Mono',monospace;font-size:7px;padding:5px 8px;border:none;cursor:pointer;background:transparent;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.04em;}
 .priv-toggle button.on{background:var(--forest);color:var(--lime);}
@@ -943,7 +950,15 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       <div class="slabel">cover image</div>
       <button type="button" class="rate-photo-btn" style="margin-top:0;" onclick="document.getElementById('list-editor-cover-input').click()">upload cover photo</button>
       <input id="list-editor-cover-input" type="file" accept="image/*" style="display:none;" onchange="handleListCoverInput(this)"/>
-      <img id="list-editor-cover-preview" class="rate-photo-preview" alt=""/>
+      <div id="list-cover-frame" class="list-cover-frame" style="display:none;">
+        <img id="list-editor-cover-preview" alt=""/>
+      </div>
+      <div id="list-cover-tools" class="list-cover-tools" style="display:none;">
+        <label>zoom <input id="list-cover-zoom" type="range" min="1" max="3" step="0.01" value="1" oninput="setListCoverTransform()"/></label>
+        <label>x <input id="list-cover-x" type="range" min="-50" max="50" step="1" value="0" oninput="setListCoverTransform()"/></label>
+        <label>y <input id="list-cover-y" type="range" min="-50" max="50" step="1" value="0" oninput="setListCoverTransform()"/></label>
+        <button type="button" class="list-cover-remove" onclick="removeListCover()">remove cover photo</button>
+      </div>
     </div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
       <button type="button" class="feedback-btn-secondary" onclick="closeListEditor()">cancel</button>
@@ -1168,6 +1183,41 @@ function ensureListMeta(){
     if(!Array.isArray(S.listMeta[nm].tags))S.listMeta[nm].tags=[];
   });
 }
+let LIST_COVER_SRC='';
+function getListCoverState(){
+  return{
+    zoom:parseFloat(document.getElementById('list-cover-zoom')?.value||'1'),
+    x:parseFloat(document.getElementById('list-cover-x')?.value||'0'),
+    y:parseFloat(document.getElementById('list-cover-y')?.value||'0')
+  };
+}
+function setListCoverTransform(){
+  const img=document.getElementById('list-editor-cover-preview');
+  if(!img||!LIST_COVER_SRC)return;
+  const st=getListCoverState();
+  img.style.transform=`translate(calc(-50% + ${st.x}px), calc(-50% + ${st.y}px)) scale(${st.zoom})`;
+}
+function setListCoverUI(src,opts){
+  const frame=document.getElementById('list-cover-frame');
+  const tools=document.getElementById('list-cover-tools');
+  const img=document.getElementById('list-editor-cover-preview');
+  if(!frame||!tools||!img)return;
+  LIST_COVER_SRC=src||'';
+  if(!src){
+    frame.style.display='none';
+    tools.style.display='none';
+    img.removeAttribute('src');
+    return;
+  }
+  img.src=src;
+  frame.style.display='block';
+  tools.style.display='grid';
+  document.getElementById('list-cover-zoom').value=String(opts&&opts.zoom||1);
+  document.getElementById('list-cover-x').value=String(opts&&opts.x||0);
+  document.getElementById('list-cover-y').value=String(opts&&opts.y||0);
+  setListCoverTransform();
+}
+function removeListCover(){setListCoverUI('');}
 function findListForPlaceId(id){
   ensureLists();
   const names=getAllListNames();
@@ -1214,9 +1264,12 @@ function openListEditor(existingName){
   if(tags)tags.value=Array.isArray(meta.tags)?meta.tags.join(', '):'';
   if(priv)priv.checked=isEdit?(S.listPrivacy[key]==='private'):false;
   if(pre){
-    const src=isEdit?(S.listCovers&&S.listCovers[key]||''):'';
-    pre.src=src||'';
-    pre.classList.toggle('show',!!src);
+    const rawCover=isEdit?(S.listCovers&&S.listCovers[key]||''):'';
+    let src='';
+    let opts={zoom:1,x:0,y:0};
+    if(rawCover&&typeof rawCover==='object'){src=rawCover.src||'';opts={zoom:rawCover.zoom||1,x:rawCover.x||0,y:rawCover.y||0};}
+    else src=rawCover||'';
+    setListCoverUI(src,opts);
   }
   const fi=document.getElementById('list-editor-cover-input');if(fi)fi.value='';
   document.getElementById('list-editor-modal').classList.add('open');
@@ -1232,8 +1285,7 @@ function handleListCoverInput(input){
   if(!f)return;
   const r=new FileReader();
   r.onload=e=>{
-    const pre=document.getElementById('list-editor-cover-preview');
-    if(pre){pre.src=e.target.result;pre.classList.add('show');}
+    setListCoverUI(e.target.result,{zoom:1,x:0,y:0});
   };
   r.readAsDataURL(f);
 }
@@ -1257,8 +1309,11 @@ function saveListEditor(){
   const desc=(document.getElementById('list-editor-desc')?.value||'').trim();
   const tagsRaw=(document.getElementById('list-editor-tags')?.value||'').split(',').map(t=>t.trim()).filter(Boolean);
   S.listMeta[raw]={desc,tags:[...new Set(tagsRaw)].slice(0,8)};
-  const cover=document.getElementById('list-editor-cover-preview')?.src||'';
-  if(cover&&/^data:image\//.test(cover))S.listCovers[raw]=cover;
+  const cover=LIST_COVER_SRC||'';
+  if(cover&&/^data:image\//.test(cover)){
+    const st=getListCoverState();
+    S.listCovers[raw]={src:cover,zoom:st.zoom,x:st.x,y:st.y};
+  }else delete S.listCovers[raw];
   markProfileDirty();
   renderListFolders();
   persistFrankState();
@@ -1413,15 +1468,18 @@ function renderListFolders(){
     const desc=String(meta.desc||'').trim();
     const tags=(meta.tags||[]).slice(0,3).map(t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'));
     const cover=S.listCovers&&S.listCovers[nm];
-    const thumb=cover
-      ?`<div class="list-folder-visual"><img src="${String(cover).replace(/"/g,'&quot;')}" alt=""/></div>`
+    const covObj=(cover&&typeof cover==='object')?cover:{src:String(cover||''),zoom:1,x:0,y:0};
+    const covStyle=`style="left:50%;top:50%;position:absolute;transform:translate(calc(-50% + ${(covObj.x||0)}px), calc(-50% + ${(covObj.y||0)}px)) scale(${covObj.zoom||1});width:100%;height:100%;object-fit:cover;"`;
+    const thumb=(covObj.src)
+      ?`<div class="list-folder-visual"><img src="${String(covObj.src).replace(/"/g,'&quot;')}" alt="" ${covStyle}/></div>`
       :first
         ?`<div class="list-folder-visual"><img src="${placeThumbUrl(first).replace(/"/g,'&quot;')}" alt=""/></div>`
         :`<div class="list-folder-visual" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--forest) 0%,var(--forest-mid) 100%);"><span style="font-size:30px;line-height:1;" aria-hidden="true">${listFolderEmoji(nm)}</span></div>`;
-    const row=`<div class="list-privacy-row" onclick="event.stopPropagation();"><span class="list-privacy-pill">${isPriv?'private':'public'}</span><div class="list-row-actions"><button type="button" class="list-mini-btn" onclick="openListEditor('${esc}')">edit</button><button type="button" class="list-mini-btn" onclick="shareList('${esc}')">share</button></div></div>`;
+    const privIcon=isPriv?'🔒':'🌍';
+    const row=`<div class="list-privacy-row" onclick="event.stopPropagation();"><div class="list-row-actions"><button type="button" class="list-mini-btn" onclick="openListEditor('${esc}')">edit</button><button type="button" class="list-mini-btn" onclick="shareList('${esc}')">share</button></div></div>`;
     const tagRow=tags.length?`<div class="list-folder-tags">${tags.map(t=>`<span class="list-folder-tag">${t}</span>`).join('')}</div>`:'';
     const descRow=desc?`<div class="list-folder-sub">${desc.replace(/</g,'&lt;')}</div>`:'';
-    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
+    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div><span class="list-privacy-icon" title="${isPriv?'private':'public'}">${privIcon}</span></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);padding-left:4px;">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
   });
   cards.unshift(`<div class="list-folder-card list-create-card" onclick="openListEditor()"><div class="list-create-inner">+ create list<br/>name, tags, cover, share</div></div>`);
   wrap.innerHTML=cards.join('');
@@ -2934,6 +2992,8 @@ window.toggleEventSaved=toggleEventSaved;
 window.toggleReviewPhotoPub=toggleReviewPhotoPub;
 window.toggleScoreTip=toggleScoreTip;
 window.handleListCoverInput=handleListCoverInput;
+window.setListCoverTransform=setListCoverTransform;
+window.removeListCover=removeListCover;
 window.shareList=shareList;
 window.triggerBetaFeedback=triggerBetaFeedback;
 window.openFeedbackModal=openFeedbackModal;
