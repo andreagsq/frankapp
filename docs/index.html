@@ -71,11 +71,9 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   .cat-emoji{font-size:16px;}
   .cat-label{font-size:8px;min-height:2.2em;}
   .prompt-section{padding:5px 0 6px;}
-  .prompts-row{
-    flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;gap:5px;padding-bottom:4px;margin:0 -2px;scrollbar-width:none;touch-action:pan-x pan-y;
-  }
-  .prompts-row::-webkit-scrollbar{display:none;}
-  .prompt-chip{padding:4px 9px;font-size:8.5px;}
+  .prompts-scroll{padding:1px 8px 4px;scroll-padding-left:8px;}
+  .prompts-row{gap:7px;}
+  .prompt-chip{padding:7px 13px;font-size:11px;}
 }
 @media (max-width:560px){
   #screen-chat.chat-top-compact .cat-bar{padding:4px 0 4px;}
@@ -86,14 +84,18 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   #screen-chat.chat-top-compact .cat-emoji{font-size:14px;}
   #screen-chat.chat-top-compact .cat-label{-webkit-line-clamp:1;line-clamp:1;min-height:1.15em;font-size:7px;max-width:5.5rem;}
   #screen-chat.chat-top-compact .prompt-section{padding:2px 0 3px;border-top-color:transparent;}
-  #screen-chat.chat-top-compact .prompt-chip{padding:3px 7px;font-size:8px;}
+  #screen-chat.chat-top-compact .prompts-scroll{padding:1px 8px 3px;}
+  #screen-chat.chat-top-compact .prompt-chip{padding:6px 11px;font-size:10px;}
+  #screen-chat.chat-top-compact #quote-bar{padding:7px 10px 9px;border-bottom-width:2px;}
+  #screen-chat.chat-top-compact #q-text{font-size:18px;line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+  #screen-chat.chat-top-compact #q-attr{font-size:8px;margin-top:7px;}
 }
 
 /* PROMPT CHIPS */
 .prompt-section{border-top:1px dashed #d0c8b4;padding:8px 0 10px;width:100%;}
 .prompt-label{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:3px;}
 .prompt-hint{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-light);margin-bottom:5px;font-style:italic;}
-.prompts-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;padding:1px 0 3px;}
+.prompts-scroll{overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;white-space:nowrap;padding:1px 8px 3px;scroll-padding-left:8px;}
 .prompts-scroll::-webkit-scrollbar{display:none;}
 .prompts-row{display:flex;gap:7px;flex-wrap:nowrap;width:max-content;min-width:max-content;}
 .prompt-chip{display:inline-flex;align-items:center;gap:5px;background:var(--forest);color:var(--lime);border:1px solid rgba(28,58,42,0.88);border-radius:20px;padding:7px 13px;font-family:'DM Mono',monospace;font-size:11px;cursor:pointer;white-space:nowrap;flex:0 0 auto;line-height:1.25;}
@@ -555,16 +557,15 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     <div class="bar-label">browse</div>
     <div class="cat-grid" id="cat-grid-primary" aria-label="Browse categories — scroll sideways"></div>
     <div class="prompt-section">
-      <div class="prompt-label">or just ask</div>
+      <div class="prompt-label">or steal one if you're feeling lazy</div>
       <div class="prompts-scroll">
         <div class="prompts-row">
-          <button class="prompt-chip" onclick="firePrompt('dog friendly coffee outdoor','🐶 dogs welcome')">🐶 dogs welcome</button>
-          <button class="prompt-chip" onclick="firePrompt('date night upscale restaurant','🕯 date night')">🕯 date night</button>
-          <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 survive the night')">🌙 late night</button>
-          <button class="prompt-chip" onclick="firePrompt('best food truck austin','🚚 street food')">🚚 street food</button>
-          <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 work from here')">💻 wfh</button>
-          <button class="prompt-chip" onclick="firePrompt('live music venue bar','🎶 live music')">🎶 live music</button>
-          <button class="prompt-chip" onclick="firePrompt('casual no reservation bites','🍕 casual bites')">🍕 casual</button>
+          <button class="prompt-chip" onclick="firePrompt('dog friendly patio coffee','🐶 bring your doggo')">🐶 bring your doggo</button>
+          <button class="prompt-chip" onclick="firePrompt('date night restaurant romantic','🕯 date night works')">🕯 date night works</button>
+          <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 late night works')">🌙 late night works</button>
+          <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 remote work')">💻 remote work</button>
+          <button class="prompt-chip" onclick="firePrompt('kid friendly family restaurant patio','🧸 parent friendly')">🧸 parent friendly</button>
+          <button class="prompt-chip" onclick="firePrompt('cocktails party fun margaritas get lit','🥂 let loose')">🥂 let loose</button>
         </div>
       </div>
     </div>
@@ -1093,7 +1094,7 @@ let pendingTab=null;
 
 const CE={'Coffee':'☕','Cocktails':'🍸','Dinner':'🍽️','Late Night':'🌙','Quick Bite':'🌮','patios + rooftops':'🌆','music':'🎶','brunch':'🥂'};
 const CI={'Coffee':'coffee-first spots: morning fuel, not a full bar night.','Cocktails':'drinks-led: bars, wine bars, cocktail rooms.','Dinner':'sit-down meals worth planning around.','Late Night':'open late, after-hours, dives, midnight food.','Quick Bite':'trucks, counters, bbq lines, fast tacos. get in and out.','dive bars':'dive-bar energy: dark, casual, and actually welcoming after-hours.','outdoors':'outdoor tables and fresh air: patios, gardens, and anywhere you can breathe.','wellness':'wellness-friendly spots: sober-friendly, balanced, and feel-good food.','patios + rooftops':'rooftops + patios: outside air, sometimes a view.','music':'where live music shows up in the room.','brunch':'day drinking adjacent: brunch energy.'};
-const PI={'dogs welcome':'bring the dog. all confirmed welcome.','date night':'somewhere worth making a reservation for.','survive the night':'open late. no questions asked.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
+const PI={'bring your doggo':'yes, your dog can absolutely come.','date night works':'you need a spot that feels like effort without being cringe.','late night works':'open late, good energy, no panic at 11:30.','remote work':'wifi, plugs, caffeine, and nobody rushing you out.','parent friendly':'kid-safe, parent-sane, still good food.','let loose':'okay, we are outside tonight. start with these.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
 
 let S={saved:[],lists:{'Morning Rituals':[], 'Late Night Moves':[], 'The Vault':[]},listPrivacy:{'Morning Rituals':'public','Late Night Moves':'public','The Vault':'public'},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
 let SAVE_SHEET={open:false,placeId:null};
