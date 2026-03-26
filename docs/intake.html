@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>frAnk intake</title>
+<style>
+*{box-sizing:border-box}
+body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;background:#f5f0e8;color:#1a1a0f}
+.wrap{max-width:760px;margin:0 auto;padding:16px}
+.card{background:#fff;border:1px solid #ddd8cc;border-radius:12px;padding:14px}
+h1{margin:0 0 6px;font-size:28px;color:#1c3a2a}
+.sub{font-size:13px;color:#5c5c4a;line-height:1.5;margin:0 0 14px}
+label{display:block;font-size:12px;font-weight:700;margin:10px 0 6px;color:#1c3a2a;text-transform:uppercase;letter-spacing:.04em}
+input,select,textarea{width:100%;padding:10px 11px;border:1px solid #c8c0ac;border-radius:8px;font-size:14px;background:#fff;color:#1a1a0f}
+textarea{min-height:90px;resize:vertical}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+button{border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:pointer}
+.primary{background:#1c3a2a;color:#b8e832}
+.secondary{background:#ede6d6;color:#1c3a2a}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+#preview{margin-top:12px;padding:10px;border:1px dashed #c8c0ac;border-radius:8px;background:#fbf8f1;white-space:pre-wrap;font-size:12px}
+.hint{font-size:12px;color:#6a6a5a;margin-top:8px;line-height:1.45}
+@media(max-width:640px){.row{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="card">
+      <h1>frAnk intake</h1>
+      <p class="sub">Capture places, events, and feedback from your phone. This creates one compact JSONL entry at a time so imports stay context-light.</p>
+
+      <div class="row">
+        <div>
+          <label for="type">Type</label>
+          <select id="type">
+            <option value="place">place</option>
+            <option value="event">event</option>
+            <option value="feedback">feedback</option>
+          </select>
+        </div>
+        <div>
+          <label for="priority">Priority</label>
+          <select id="priority">
+            <option value="normal">normal</option>
+            <option value="high">high</option>
+          </select>
+        </div>
+      </div>
+
+      <label for="name">Name / title</label>
+      <input id="name" placeholder="e.g. De Nada Cantina"/>
+
+      <label for="link">Source link</label>
+      <input id="link" placeholder="https://..."/>
+
+      <label for="hood">Neighborhood / date</label>
+      <input id="hood" placeholder="e.g. East Austin or 2026-04-03"/>
+
+      <label for="notes">Notes</label>
+      <textarea id="notes" placeholder="What makes it good? any caveats?"></textarea>
+
+      <label for="assets">Screenshot/image links (comma separated)</label>
+      <input id="assets" placeholder="https://..., https://..."/>
+
+      <div class="btns">
+        <button class="primary" onclick="copyEntry()">copy JSONL entry</button>
+        <button class="secondary" onclick="queueEntry()">add to local queue</button>
+        <button class="secondary" onclick="copyQueue()">copy queued batch</button>
+        <button class="secondary" onclick="clearQueue()">clear queue</button>
+      </div>
+
+      <div id="preview" class="mono">preview appears here…</div>
+      <p class="hint">Workflow: capture multiple entries on phone, then tap <strong>copy queued batch</strong> and paste into a new Cursor chat with “import these”.</p>
+    </div>
+  </div>
+
+<script>
+const KEY = "frank_intake_queue_v1";
+const el = id => document.getElementById(id);
+const FOUNDER_PIN_KEY = "frank_founder_pin";
+const FOUNDER_ACCESS_KEY = "frank_founder_access";
+
+function denyAccess(msg){
+  document.body.innerHTML = '<div class="wrap"><div class="card"><h1>access denied</h1><p class="sub">'+msg+'</p></div></div>';
+  throw new Error("founder access denied");
+}
+
+function requireFounderAccess(){
+  if(localStorage.getItem(FOUNDER_ACCESS_KEY) === "1") return;
+  let pin = localStorage.getItem(FOUNDER_PIN_KEY);
+  if(!pin){
+    const first = prompt("Set your founder PIN (one-time on this device)");
+    if(first===null || !String(first).trim()) denyAccess("No founder PIN set.");
+    const confirmPin = prompt("Confirm founder PIN");
+    if(confirmPin !== first) denyAccess("PIN confirmation did not match.");
+    pin = String(first).trim();
+    localStorage.setItem(FOUNDER_PIN_KEY, pin);
+  }
+  const attempt = prompt("Founder PIN required");
+  if(attempt===null || String(attempt).trim() !== pin) denyAccess("Invalid PIN.");
+  localStorage.setItem(FOUNDER_ACCESS_KEY, "1");
+}
+
+requireFounderAccess();
+
+function parseAssets(v){
+  return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);
+}
+
+function buildEntry(){
+  const entry = {
+    ts: new Date().toISOString(),
+    type: el("type").value,
+    priority: el("priority").value,
+    name: el("name").value.trim(),
+    link: el("link").value.trim(),
+    context: el("hood").value.trim(),
+    notes: el("notes").value.trim(),
+    assets: parseAssets(el("assets").value),
+    status: "new"
+  };
+  el("preview").textContent = JSON.stringify(entry);
+  return entry;
+}
+
+function getQueue(){
+  try { return JSON.parse(localStorage.getItem(KEY) || "[]"); } catch(_e){ return []; }
+}
+function setQueue(list){ localStorage.setItem(KEY, JSON.stringify(list)); }
+
+async function copyText(t){
+  await navigator.clipboard.writeText(t);
+}
+
+async function copyEntry(){
+  const line = JSON.stringify(buildEntry());
+  await copyText(line);
+  alert("Copied 1 JSONL line.");
+}
+
+function queueEntry(){
+  const q = getQueue();
+  q.push(buildEntry());
+  setQueue(q);
+  alert(`Queued. Total: ${q.length}`);
+}
+
+async function copyQueue(){
+  const q = getQueue();
+  if(!q.length){ alert("Queue is empty."); return; }
+  const blob = q.map(x => JSON.stringify(x)).join("\n");
+  await copyText(blob);
+  alert(`Copied ${q.length} JSONL lines.`);
+}
+
+function clearQueue(){
+  setQueue([]);
+  alert("Queue cleared.");
+}
+
+["type","priority","name","link","hood","notes","assets"].forEach(id => {
+  el(id).addEventListener("input", buildEntry);
+});
+buildEntry();
+</script>
+</body>
+</html>

@@ -933,6 +933,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 
 <div id="account-flyout" class="account-flyout" style="display:none;" onclick="event.stopPropagation()">
   <button type="button" onclick="closeAccountFlyout();switchTab('profile')">profile</button>
+  <button id="founder-intake-btn" type="button" style="display:none;" onclick="closeAccountFlyout();openFounderIntake()">intake form</button>
   <button type="button" onclick="closeAccountFlyout();showSettings()">settings</button>
   <button type="button" onclick="closeAccountFlyout();openFeedbackModal()">feedback</button>
 </div>
@@ -2617,6 +2618,7 @@ function connectSocial(platform){
 }
 function showHeaderAccountMenu(e){
   e.stopPropagation();
+  syncFounderIntakeButton();
   const f=document.getElementById('account-flyout');
   if(!f)return;
   f.classList.remove('profile-avatar-context');
@@ -2624,10 +2626,23 @@ function showHeaderAccountMenu(e){
 }
 function showProfileAvatarMenu(e){
   e.stopPropagation();
+  syncFounderIntakeButton();
   const f=document.getElementById('account-flyout');
   if(!f)return;
   f.classList.add('profile-avatar-context');
   f.style.display=f.style.display==='block'?'none':'block';
+}
+function hasFounderAccess(){
+  return localStorage.getItem('frank_founder_access')==='1';
+}
+function syncFounderIntakeButton(){
+  const btn=document.getElementById('founder-intake-btn');
+  if(!btn)return;
+  btn.style.display=hasFounderAccess()?'block':'none';
+}
+function openFounderIntake(){
+  if(!hasFounderAccess()){toast('founder access required.');return;}
+  window.open('./intake.html','_blank');
 }
 function closeAccountFlyout(){const f=document.getElementById('account-flyout');if(f){f.style.display='none';f.classList.remove('profile-avatar-context');}}
 document.addEventListener('click',function(){closeAccountFlyout();});
@@ -3174,6 +3189,7 @@ window.showHeaderAccountMenu=showHeaderAccountMenu;
 window.showOBScreen=showOBScreen;
 window.showProfileAvatarMenu=showProfileAvatarMenu;
 window.showSettings=showSettings;
+window.openFounderIntake=openFounderIntake;
 window.submitRate=submitRate;
 window.switchSettingsTab=switchSettingsTab;
 window.switchTab=switchTab;
@@ -3203,6 +3219,7 @@ window.updateInit=updateInit;
 document.getElementById('explore-cover-file')?.addEventListener('change',onExploreCoverFile);
 window.addEventListener('hashchange',maybeOpenSharedListFromHash);
 loadFrankState();
+syncFounderIntakeButton();
 (function(){
   document.getElementById('q-text').textContent='"'+DQ.q+'"';
   document.getElementById('q-attr').textContent='· '+DQ.attr;
