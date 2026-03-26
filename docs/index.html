@@ -1014,8 +1014,25 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 import { PLACES, QUOTES, EVENTS } from './dataManager.js';
 import { scoreIntentHintsMatch } from './intentHintsVocab.js';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
-const nd=new Date();const hk=`${nd.getMonth()+1}-${nd.getDate()}`;
-const DQ=HQ[hk]||QUOTES[nd.getDate()%QUOTES.length];
+function pickHeaderQuote(){
+  const nd=new Date();
+  const hk=`${nd.getMonth()+1}-${nd.getDate()}`;
+  const holiday=HQ[hk];
+  const pool=holiday?[holiday,...QUOTES]:QUOTES;
+  const rotKey=`frank_quote_rot_${hk}_v1`;
+  let rot=parseInt(localStorage.getItem(rotKey)||"0",10);
+  if(!Number.isFinite(rot))rot=0;
+  const pick=pool[rot%pool.length];
+  localStorage.setItem(rotKey,String(rot+1));
+  return pick;
+}
+function setQuoteBarText(){
+  const dq=pickHeaderQuote();
+  const qt=document.getElementById('q-text');
+  const qa=document.getElementById('q-attr');
+  if(qt)qt.textContent='"'+dq.q+'"';
+  if(qa)qa.textContent='· '+dq.attr;
+}
 
 // ── VIBE TAGS - short eyebrows for card thumbnails ────────────
 // derive a 1-2 word vibe tag from each place's category/tags
@@ -1625,7 +1642,7 @@ function switchTab(t){
   if(t==='profile'){renderSavedGrid();renderPhotoGrid();renderRatingDrafts();renderProfileReviews();}
   if(t==='events'){renderEventsTab();}
   if(t==='explore'){renderExploreFeed();}
-  if(t==='chat')syncChatTopCompact();
+  if(t==='chat'){syncChatTopCompact();setQuoteBarText();}
 }
 
 function tryLeaveProfile(){
@@ -3221,8 +3238,7 @@ window.addEventListener('hashchange',maybeOpenSharedListFromHash);
 loadFrankState();
 syncFounderIntakeButton();
 (function(){
-  document.getElementById('q-text').textContent='"'+DQ.q+'"';
-  document.getElementById('q-attr').textContent='· '+DQ.attr;
+  setQuoteBarText();
   const body=document.getElementById('chat-body');
   const w=document.createElement('div');
   w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
