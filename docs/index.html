@@ -768,7 +768,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     </div>
     <div class="explore-preview-scroll" id="explore-preview-spots"></div>
     <div class="explore-preview-foot">
-      <button type="button" class="gbtn" style="width:100%;margin-bottom:10px;border-radius:8px;padding:10px;" onclick="openExploreCoverStudio()">cover art · presets, upload, or generate</button>
+      <button type="button" class="gbtn" style="width:100%;margin-bottom:10px;border-radius:8px;padding:8px 10px;font-size:10px;" onclick="openExploreCoverStudio()">edit cover photo</button>
       <button type="button" class="explore-copy-btn" onclick="openCopyExploreSheet()">save list</button>
     </div>
   </div>
@@ -788,7 +788,10 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       <input type="color" id="explore-cover-c2" value="#b8e832"/>
       <button type="button" class="fbtn" style="padding:8px 14px;font-size:11px;" onclick="generateExplorePlaylistCover()">generate</button>
     </div>
-    <button type="button" class="gbtn" style="width:100%;margin-top:14px;border-radius:8px;" onclick="closeExploreCoverStudio()">done</button>
+    <div class="explore-cover-actions">
+      <button type="button" class="fbtn" style="width:100%;border-radius:8px;" onclick="commitExploreCoverChanges()">save changes</button>
+      <button type="button" class="gbtn" style="width:100%;border-radius:8px;" onclick="closeExploreCoverStudio()">cancel</button>
+    </div>
   </div>
 </div>
 
@@ -812,7 +815,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 <div id="full-card-modal">
   <div class="fc-header">
     <div class="fc-name" id="fc-name-display"></div>
-    <button type="button" class="fc-close" onclick="closeFullCard()">close</button>
+    <button type="button" class="fc-close" id="fc-close-btn" onclick="closeFullCard()">close</button>
   </div>
   <div class="fc-scroll" id="fc-scroll-body"></div>
 </div>
@@ -1153,6 +1156,7 @@ const GLOBAL_EXPLORE_LISTS=[
   {id:'gx8',title:'Rainey St. If You Must',creator:'DEV',placeIds:[106,144,125],coverIndex:7}
 ];
 let EXPLORE_ACTIVE_ID=null;
+let PENDING_EXPLORE_COVER=undefined;
 function userListExploreId(name){return`u:${encodeURIComponent(name)}`;}
 function parseUserListExploreId(id){return id&&id.startsWith('u:')?decodeURIComponent(id.slice(2)):null;}
 function getOwnListExploreByName(name){
@@ -1731,13 +1735,14 @@ function fillExploreCoverPresetGrid(){
 function syncExploreCoverSelectionHighlight(){
   const id=EXPLORE_ACTIVE_ID;
   if(!id)return;
-  const raw=S.exploreListCovers?.[id];
+  const raw=(PENDING_EXPLORE_COVER!==undefined)?PENDING_EXPLORE_COVER:S.exploreListCovers?.[id];
   let sel=-1;
   if(typeof raw==='string'&&raw.startsWith('preset:'))sel=parseInt(raw.slice(7),10);
   document.querySelectorAll('#explore-cover-preset-grid .explore-cover-opt').forEach((btn,i)=>{btn.classList.toggle('on',sel===i);});
 }
 function openExploreCoverStudio(){
   if(!EXPLORE_ACTIVE_ID){toast('open a list first.');return;}
+  PENDING_EXPLORE_COVER=(S.exploreListCovers&&Object.prototype.hasOwnProperty.call(S.exploreListCovers,EXPLORE_ACTIVE_ID))?S.exploreListCovers[EXPLORE_ACTIVE_ID]:null;
   fillExploreCoverPresetGrid();
   syncExploreCoverSelectionHighlight();
   const bg=document.getElementById('explore-cover-modal-bg');
@@ -1747,20 +1752,26 @@ function openExploreCoverStudio(){
 function closeExploreCoverStudio(){
   const bg=document.getElementById('explore-cover-modal-bg');
   if(bg)bg.classList.remove('open');
+  if(EXPLORE_ACTIVE_ID){
+    const L=getExploreListById(EXPLORE_ACTIVE_ID);
+    const img=document.getElementById('explore-preview-cover-img');
+    if(L&&img){
+      const coverSource=L.isUserList?(S.listCovers&&S.listCovers[L.listName]||''):resolveExploreCoverUrl(L.id,L.coverIndex||0);
+      const covObj=(coverSource&&typeof coverSource==='object')?coverSource:{src:String(coverSource||''),x:0,y:0};
+      img.src=(covObj.src||'');
+    }
+  }
+  PENDING_EXPLORE_COVER=undefined;
   const copyOpen=document.getElementById('copy-explore-sheet')?.classList.contains('open');
   const exOpen=document.getElementById('explore-preview-overlay')?.classList.contains('open');
   if(!copyOpen&&!exOpen&&!SAVE_SHEET.open)document.body.style.overflow='';
 }
 function applyExploreCoverPreset(i){
   if(!EXPLORE_ACTIVE_ID)return;
-  if(!S.exploreListCovers)S.exploreListCovers={};
-  S.exploreListCovers[EXPLORE_ACTIVE_ID]='preset:'+i;
-  persistFrankState();
-  renderExploreFeed();
+  PENDING_EXPLORE_COVER='preset:'+i;
   const img=document.getElementById('explore-preview-cover-img');
   if(img)img.src=EXPLORE_COVER_PRESETS[i];
   syncExploreCoverSelectionHighlight();
-  toast('cover updated.');
 }
 function generateExplorePlaylistCover(){
   const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
@@ -1779,29 +1790,31 @@ function generateExplorePlaylistCover(){
   x.fillText(title,256,210);
   x.fillStyle='#b8e832';x.font='600 12px "DM Mono", monospace';x.fillText('frAnk · public list',256,456);
   const data=cv.toDataURL('image/png');
-  if(!S.exploreListCovers)S.exploreListCovers={};
-  S.exploreListCovers[EXPLORE_ACTIVE_ID]=data;
-  persistFrankState();
-  renderExploreFeed();
+  PENDING_EXPLORE_COVER=data;
   const img=document.getElementById('explore-preview-cover-img');
   if(img)img.src=data;
-  toast('generated cover saved.');
 }
 function onExploreCoverFile(ev){
   const f=ev.target&&ev.target.files&&ev.target.files[0];
   if(!f||!EXPLORE_ACTIVE_ID)return;
   const r=new FileReader();
   r.onload=e=>{
-    if(!S.exploreListCovers)S.exploreListCovers={};
-    S.exploreListCovers[EXPLORE_ACTIVE_ID]=e.target.result;
-    persistFrankState();
-    renderExploreFeed();
+    PENDING_EXPLORE_COVER=e.target.result;
     const img=document.getElementById('explore-preview-cover-img');
     if(img)img.src=e.target.result;
-    toast('photo set as cover.');
   };
   r.readAsDataURL(f);
   ev.target.value='';
+}
+function commitExploreCoverChanges(){
+  if(!EXPLORE_ACTIVE_ID)return;
+  if(!S.exploreListCovers)S.exploreListCovers={};
+  if(PENDING_EXPLORE_COVER===null||PENDING_EXPLORE_COVER===undefined)delete S.exploreListCovers[EXPLORE_ACTIVE_ID];
+  else S.exploreListCovers[EXPLORE_ACTIVE_ID]=PENDING_EXPLORE_COVER;
+  persistFrankState();
+  renderExploreFeed();
+  closeExploreCoverStudio();
+  toast('cover changes saved.');
 }
 
 function openCopyExploreSheet(){
@@ -2325,6 +2338,9 @@ function openFullCard(id){
   const dots=urls.map((_,i)=>`<button type="button" class="fc-carousel-dot${i===0?' on':''}" aria-label="photo ${i+1}"></button>`).join('');
   const hoursTxt=p.hours?p.hours:'hours vary · check google maps';
   document.getElementById('fc-name-display').textContent=p.name;
+  const fromListPreview=document.getElementById('explore-preview-overlay')?.classList.contains('open');
+  const closeBtn=document.getElementById('fc-close-btn');
+  if(closeBtn)closeBtn.textContent=fromListPreview?'return':'close';
   const body=document.getElementById('fc-scroll-body');
   body.innerHTML=`
     <div class="fc-carousel-wrap">
@@ -3084,6 +3100,7 @@ window.openCopyExploreSheet=openCopyExploreSheet;
 window.openExplorePreview=openExplorePreview;
 window.openExploreCoverStudio=openExploreCoverStudio;
 window.closeExploreCoverStudio=closeExploreCoverStudio;
+window.commitExploreCoverChanges=commitExploreCoverChanges;
 window.applyExploreCoverPreset=applyExploreCoverPreset;
 window.generateExplorePlaylistCover=generateExplorePlaylistCover;
 window.onExploreCoverFile=onExploreCoverFile;
