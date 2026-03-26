@@ -96,6 +96,7 @@ const SHOTS = [];
 const SUPABASE_URL = "https://epkmuucrwtmaywhculhe.supabase.co";
 const SUPABASE_ANON_KEY = "sb_publishable_oxjVX7gYgVUIzqmir-yM_g_c9fqpYrU";
 const SUPABASE_BUCKET = "frAnk_remoteupdate";
+// Use anon key for browser uploads. We keep auth disabled so the request uses the `anon` role.
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
   auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
 });
@@ -160,23 +161,11 @@ function renderThumbs(){
   t.innerHTML=SHOTS.map(s=>`<img class="thumb" src="${s.dataUrl}" alt="${(s.name||"shot").replace(/"/g,"&quot;")}"/>`).join("");
 }
 
-let _anonSessionEnsured = false;
-async function ensureAnonSession(){
-  if(_anonSessionEnsured) return;
-  const { data: sessData, error: sessErr } = await supabase.auth.getSession();
-  if(sessErr) throw new Error(sessErr.message || String(sessErr));
-  if(sessData?.session){ _anonSessionEnsured = true; return; }
-  const { error: signInErr } = await supabase.auth.signInAnonymously();
-  if(signInErr) throw new Error(signInErr.message || String(signInErr));
-  _anonSessionEnsured = true;
-}
-
 async function handleShotUpload(ev){
   const files=Array.from(ev.target.files||[]);
   if(!files.length)return;
   if(!confirm(`Upload ${files.length} screenshot(s) to Supabase?`)) return;
   try{
-    await ensureAnonSession();
     for(const f of files){
       // Thumbnail (small) for local preview only.
       const raw=await toDataURL(f);
@@ -186,9 +175,10 @@ async function handleShotUpload(ev){
       const rand=Math.random().toString(16).slice(2);
       const path=`intake/${Date.now()}-${rand}.${ext}`;
 
+      // No upsert: keeps RLS requirements to INSERT only (avoids needing UPDATE policies).
       const { data: upData, error: upErr } = await supabase.storage
         .from(SUPABASE_BUCKET)
-        .upload(path, f, { upsert: true, contentType: f.type || "image/jpeg" });
+        .upload(path, f, { contentType: f.type || "image/jpeg" });
 
       if(upErr) throw new Error(upErr.message || String(upErr));
 
