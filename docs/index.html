@@ -497,6 +497,23 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .review-card-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;color:var(--forest);text-transform:uppercase;}
 .review-card-meta{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:4px;}
 .review-card-note{font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-mid);margin-top:8px;line-height:1.45;}
+.feedback-modal-bg{display:none;position:fixed;inset:0;background:rgba(26,26,15,0.78);z-index:1350;align-items:center;justify-content:center;padding:max(12px,env(safe-area-inset-top)) 14px max(18px,env(safe-area-inset-bottom));box-sizing:border-box;}
+.feedback-modal-bg.open{display:flex;}
+.feedback-panel{background:var(--cream);border-radius:14px;width:100%;max-width:400px;max-height:min(88dvh,640px);overflow:hidden;display:flex;flex-direction:column;border:2px solid var(--forest);box-shadow:0 12px 40px rgba(0,0,0,0.2);}
+.feedback-panel-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;padding:14px 14px 10px;border-bottom:1px solid #ddd8cc;flex-shrink:0;}
+.feedback-panel-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:var(--forest);line-height:1.1;}
+.feedback-panel-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);margin-top:4px;line-height:1.45;max-width:280px;}
+.feedback-panel-body{padding:12px 14px 16px;overflow-y:auto;flex:1;min-height:0;-webkit-overflow-scrolling:touch;}
+.feedback-frank-tag{font-family:'DM Mono',monospace;font-size:8px;font-weight:600;color:var(--lime);text-transform:uppercase;letter-spacing:0.1em;margin-bottom:6px;}
+.feedback-q{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);line-height:1.5;margin-bottom:10px;}
+.feedback-textarea{width:100%;min-height:64px;max-height:120px;box-sizing:border-box;border:1px solid #c8c0ac;border-radius:8px;padding:10px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);resize:vertical;margin-bottom:12px;}
+.feedback-textarea:focus{outline:none;border-color:var(--forest);}
+.feedback-actions{display:flex;flex-direction:column;gap:8px;margin-top:4px;}
+.feedback-actions-row{display:flex;gap:8px;flex-wrap:wrap;}
+.feedback-btn-primary{flex:1;min-width:120px;background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;padding:11px 12px;border-radius:6px;cursor:pointer;}
+.feedback-btn-secondary{background:transparent;color:var(--forest);border:1.5px solid var(--forest);font-family:'DM Mono',monospace;font-size:10px;padding:9px 12px;border-radius:6px;cursor:pointer;}
+.feedback-topic-grid{display:flex;flex-direction:column;gap:6px;}
+.feedback-thanks{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-mid);line-height:1.55;margin-bottom:12px;}
 </style>
 </head>
 <body>
@@ -867,6 +884,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
           <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="toast('connect tiktok: coming soon.')">🎵 connect tiktok</button>
         </div>
         <button onclick="saveSettings()" style="background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:11px;cursor:pointer;border-radius:4px;width:100%;">save settings</button>
+        <button type="button" onclick="closeSettings();openFeedbackModal();" style="width:100%;margin-top:12px;background:transparent;border:1px dashed #c8c0ac;color:var(--ink-light);font-family:'DM Mono',monospace;font-size:10px;padding:10px;cursor:pointer;border-radius:6px;">send feedback</button>
       </div>
       <div id="stab-content-privacy" style="display:none;">
         <div style="display:flex;flex-direction:column;gap:7px;margin-bottom:18px;">
@@ -888,7 +906,18 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   </div>
 </div>
 
-<button type="button" onclick="triggerBetaFeedback()" aria-label="Send feedback" style="position:fixed;bottom:60px;right:16px;width:44px;height:44px;background:var(--lime);border:2px solid var(--forest);border-radius:50%;font-size:20px;z-index:100;box-shadow:0 4px 10px rgba(0,0,0,0.2);cursor:pointer;">💬</button>
+<div id="feedback-modal-bg" class="feedback-modal-bg" onclick="if(event.target===this)closeFeedbackModal()" role="dialog" aria-modal="true" aria-labelledby="feedback-modal-title">
+  <div class="feedback-panel" onclick="event.stopPropagation()">
+    <div class="feedback-panel-head">
+      <div>
+        <div class="feedback-panel-title" id="feedback-modal-title">feedback</div>
+        <div class="feedback-panel-sub">saved on this device only. no server yet—export or wire a backend later.</div>
+      </div>
+      <button type="button" class="feedback-btn-secondary" onclick="closeFeedbackModal()" style="flex-shrink:0;margin:0;">close</button>
+    </div>
+    <div class="feedback-panel-body" id="feedback-panel-body"></div>
+  </div>
+</div>
 <div id="toast"></div>
 <input type="file" id="av-input" accept="image/*" style="display:none;" onchange="handleAv(this)"/>
 
@@ -896,6 +925,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   <button type="button" onclick="closeAccountFlyout();switchTab('profile');setTimeout(function(){document.getElementById('list-folders-wrap')?.scrollIntoView({behavior:'smooth',block:'start'});},120);">my lists</button>
   <button type="button" onclick="closeAccountFlyout();switchTab('profile')">profile</button>
   <button type="button" onclick="closeAccountFlyout();showSettings()">settings</button>
+  <button type="button" onclick="closeAccountFlyout();openFeedbackModal()">feedback</button>
   <button type="button" id="acct-change-photo" onclick="closeAccountFlyout();document.getElementById('av-input').click()">change photo</button>
 </div>
 
@@ -2305,6 +2335,8 @@ function removeFromSaved(){
 
 document.addEventListener('keydown',e=>{
   if(e.key!=='Escape')return;
+  const fb=document.getElementById('feedback-modal-bg');
+  if(fb&&fb.classList.contains('open')){closeFeedbackModal();return;}
   const lfm=document.getElementById('list-folder-modal');
   if(lfm&&lfm.classList.contains('open')){closeListFolderModal();return;}
   const um=document.getElementById('unsaved-modal');
@@ -2478,26 +2510,86 @@ function finishOnboarding(){
   }
 }
 
-function triggerBetaFeedback(){
-  collapseOld();switchTab('chat');
-  setTimeout(()=>{
-    const w=document.createElement('div');
-    w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
-    w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble">
-      <div style="color:var(--lime);font-family:'DM Mono',monospace;font-weight:600;font-size:9px;text-transform:uppercase;letter-spacing:0.1em;margin-bottom:7px;">quick feedback</div>
-      be honest. what's the one thing frAnk is missing right now?
-      <div style="display:flex;flex-direction:column;gap:6px;margin-top:12px;">
-        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('more dive bars.',true)">more dive bars</button>
-        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('faster lists + covers.',true)">lists &amp; covers</button>
-        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('need to share lists.',true)">sharing lists</button>
-        <button class="vpill" style="background:var(--lime);color:var(--forest);border-color:var(--lime);" onclick="bubble('need more spots.',true)">more spots</button>
-      </div>
-    </div></div>`;
-    document.getElementById('chat-body').appendChild(w);
-    document.getElementById('chat-body').scrollTop=document.getElementById('chat-body').scrollHeight;
-    syncChatTopCompact();
-  },100);
+const FRANK_FEEDBACK_LS='frank-feedback-log-v1';
+const FEEDBACK_TOPICS={
+  dive:{label:'more dive bars',questions:['which part of town feels empty for dives?','late night or afternoon hangs?']},
+  lists:{label:'lists & covers',questions:['what is the most annoying part of lists today?','covers, sorting, or how saving works?']},
+  share:{label:'sharing lists',questions:['who do you share with most?','text link, screenshot, or in-app only?']},
+  spots:{label:'more spots / data',questions:['which category or vibe feels too thin?','any neighborhood you wish had more picks?']},
+  ux:{label:'bugs / speed / confusion',questions:['where did you actually get stuck?','one thing you would delete or simplify?']},
+  other:{label:'something else',questions:['say it plain in a sentence or two.','anything that would make you open frAnk daily?']}
+};
+let fbSession={key:null,answers:[]};
+
+function appendFeedbackLog(entry){
+  let list=[];
+  try{list=JSON.parse(localStorage.getItem(FRANK_FEEDBACK_LS)||'[]');}catch(e){}
+  if(!Array.isArray(list))list=[];
+  list.push({...entry,at:Date.now()});
+  localStorage.setItem(FRANK_FEEDBACK_LS,JSON.stringify(list.slice(-80)));
 }
+
+function openFeedbackModal(){
+  closeAccountFlyout();
+  fbSession={key:null,answers:[]};
+  const bg=document.getElementById('feedback-modal-bg');
+  if(bg){
+    bg.classList.add('open');
+    renderFeedbackPick();
+  }
+}
+function closeFeedbackModal(){
+  const bg=document.getElementById('feedback-modal-bg');
+  if(bg)bg.classList.remove('open');
+}
+function renderFeedbackPick(){
+  const root=document.getElementById('feedback-panel-body');
+  if(!root)return;
+  const keys=Object.keys(FEEDBACK_TOPICS);
+  root.innerHTML=`<div class="feedback-topic-grid">${keys.map(k=>`<button type="button" class="vpill" style="width:100%;justify-content:center;background:var(--forest);color:var(--lime);border-color:var(--forest);" onclick="feedbackPickTopic('${k}')">${FEEDBACK_TOPICS[k].label}</button>`).join('')}</div>
+    <div class="feedback-panel-sub" style="margin-top:14px;max-width:none;">frAnk asks up to two follow-ups, then thanks you. everything stays on this device until you add a backend.</div>`;
+}
+function feedbackPickTopic(key){
+  if(!FEEDBACK_TOPICS[key])return;
+  fbSession={key,answers:[]};
+  renderFeedbackQuestion(0);
+}
+function renderFeedbackQuestion(idx){
+  const root=document.getElementById('feedback-panel-body');
+  const topic=FEEDBACK_TOPICS[fbSession.key];
+  if(!topic||idx<0||idx>=topic.questions.length)return;
+  const q=topic.questions[idx];
+  const isLast=idx>=topic.questions.length-1;
+  const backBtn=idx>0
+    ?`<button type="button" class="feedback-btn-secondary" onclick="renderFeedbackQuestion(${idx-1})">back</button>`
+    :`<button type="button" class="feedback-btn-secondary" onclick="renderFeedbackPick()">back</button>`;
+  root.innerHTML=`<div class="feedback-frank-tag">frAnk</div><div class="feedback-q">${q}</div><textarea class="feedback-textarea" id="fb-ta" placeholder="${isLast?'last one—optional but helpful.':'your answer…'}" rows="3"></textarea><div class="feedback-actions"><div class="feedback-actions-row" style="width:100%;"><button type="button" class="feedback-btn-primary" style="flex:1;" onclick="feedbackSubmitQuestion(${idx})">${isLast?'submit':'next'}</button></div>${backBtn}</div>`;
+}
+function feedbackSubmitQuestion(idx){
+  const ta=document.getElementById('fb-ta');
+  const text=(ta&&ta.value||'').trim()||'(no answer)';
+  fbSession.answers[idx]=text;
+  const topic=FEEDBACK_TOPICS[fbSession.key];
+  if(!topic)return;
+  if(idx<topic.questions.length-1)renderFeedbackQuestion(idx+1);
+  else feedbackFinishThanks();
+}
+function feedbackFinishThanks(){
+  const topic=FEEDBACK_TOPICS[fbSession.key];
+  appendFeedbackLog({
+    topicKey:fbSession.key,
+    topicLabel:topic?topic.label:'',
+    followUp1:fbSession.answers[0]||'',
+    followUp2:fbSession.answers[1]||''
+  });
+  const root=document.getElementById('feedback-panel-body');
+  root.innerHTML=`<div class="feedback-frank-tag">frAnk</div><div class="feedback-thanks">thanks. logged on this device only (browser localStorage). no email or server yet—export or wire an api when you are ready.</div><div class="feedback-actions"><div class="feedback-actions-row" style="width:100%;"><button type="button" class="feedback-btn-primary" style="flex:1;" onclick="closeFeedbackModal()">close</button><button type="button" class="feedback-btn-secondary" style="flex:1;" onclick="restartFeedbackFlow()">more feedback</button></div></div>`;
+}
+function restartFeedbackFlow(){
+  fbSession={key:null,answers:[]};
+  renderFeedbackPick();
+}
+function triggerBetaFeedback(){openFeedbackModal();}
 
 // ── CAT GRID ──────────────────────────────────────────────────
 const BROWSE_CATS=[
@@ -2611,6 +2703,13 @@ window.toggleEventRsvp=toggleEventRsvp;
 window.toggleEventSaved=toggleEventSaved;
 window.toggleReviewPhotoPub=toggleReviewPhotoPub;
 window.triggerBetaFeedback=triggerBetaFeedback;
+window.openFeedbackModal=openFeedbackModal;
+window.closeFeedbackModal=closeFeedbackModal;
+window.feedbackPickTopic=feedbackPickTopic;
+window.feedbackSubmitQuestion=feedbackSubmitQuestion;
+window.renderFeedbackPick=renderFeedbackPick;
+window.renderFeedbackQuestion=renderFeedbackQuestion;
+window.restartFeedbackFlow=restartFeedbackFlow;
 window.tryLeaveProfile=tryLeaveProfile;
 window.updateInit=updateInit;
 
