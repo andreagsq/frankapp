@@ -3,7 +3,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
 <meta name="description" content="frAnk — Austin spots, live events, and lists. The better list."/>
 <title>frAnk · the better list · Austin</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,800;1,400;1,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -559,7 +559,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 <div id="screen-chat" class="screen active">
   <div class="frank-header">
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-      <div><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">the better list</div></div>
+      <div style="display:inline-flex;flex-direction:column;align-items:center;"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">the better list</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;">
       <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
@@ -694,8 +694,14 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       </div>
     </div>
     <div style="display:flex;gap:8px;margin-bottom:20px;">
-      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="toast('connect instagram: coming soon.')">📸 connect instagram</button>
-      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="toast('connect tiktok: coming soon.')">🎵 connect tiktok</button>
+      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="connectSocial('instagram')">📸 connect instagram</button>
+      <button type="button" class="vpill" style="flex:1;justify-content:center;" onclick="connectSocial('tiktok')">🎵 connect tiktok</button>
+    </div>
+    <div style="display:flex;gap:6px;margin:-8px 0 14px;">
+      <button type="button" class="vpill" onclick="applyAvatarPreset(0)">🟢</button>
+      <button type="button" class="vpill" onclick="applyAvatarPreset(1)">🌗</button>
+      <button type="button" class="vpill" onclick="applyAvatarPreset(2)">🟨</button>
+      <button type="button" class="vpill" onclick="applyAvatarPreset(3)">🧿</button>
     </div>
     <div class="slabel">your stats</div>
     <div style="display:flex;gap:8px;margin-bottom:16px;">
@@ -777,17 +783,11 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 <div id="explore-cover-modal-bg" class="explore-cover-modal-bg" onclick="if(event.target===this)closeExploreCoverStudio()">
   <div class="explore-cover-panel" onclick="event.stopPropagation()">
     <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:20px;text-transform:uppercase;color:var(--forest);margin-bottom:4px;">list cover</div>
-    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:12px;line-height:1.45;">pick a frAnk frame, upload a photo, or generate a two-color split tile (no gradients: just forest / lime / cream).</div>
+    <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);margin-bottom:12px;line-height:1.45;">pick a frAnk preset or upload your own cover photo.</div>
     <div class="slabel">presets</div>
     <div class="explore-cover-grid" id="explore-cover-preset-grid"></div>
     <div class="slabel">upload</div>
     <input type="file" id="explore-cover-file" accept="image/*" style="font-family:'DM Mono',monospace;font-size:10px;width:100%;margin-bottom:12px;"/>
-    <div class="slabel">generate</div>
-    <div class="explore-cover-gen-row">
-      <input type="color" id="explore-cover-c1" value="#1c3a2a"/>
-      <input type="color" id="explore-cover-c2" value="#b8e832"/>
-      <button type="button" class="fbtn" style="padding:8px 14px;font-size:11px;" onclick="generateExplorePlaylistCover()">generate</button>
-    </div>
     <div class="explore-cover-actions">
       <button type="button" class="fbtn" style="width:100%;border-radius:8px;" onclick="commitExploreCoverChanges()">save changes</button>
       <button type="button" class="gbtn" style="width:100%;border-radius:8px;" onclick="closeExploreCoverStudio()">cancel</button>
@@ -885,13 +885,13 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
           </div>
           <div>
             <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:4px;">membership</div>
-            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.12em;color:var(--forest);">MEMBER</div>
+            <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:16px;letter-spacing:0.12em;color:var(--forest);">BETA MEMBER</div>
           </div>
         </div>
         <div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);text-transform:uppercase;letter-spacing:0.08em;margin-bottom:8px;">social</div>
         <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;">
-          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="toast('connect instagram: coming soon.')">📸 connect instagram</button>
-          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="toast('connect tiktok: coming soon.')">🎵 connect tiktok</button>
+          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="connectSocial('instagram')">📸 connect instagram</button>
+          <button type="button" class="vpill" style="justify-content:center;width:100%;" onclick="connectSocial('tiktok')">🎵 connect tiktok</button>
         </div>
         <button onclick="saveSettings()" style="background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;padding:11px;cursor:pointer;border-radius:4px;width:100%;">save settings</button>
         <button type="button" onclick="closeSettings();openFeedbackModal();" style="width:100%;margin-top:12px;background:transparent;border:1px dashed #c8c0ac;color:var(--ink-light);font-family:'DM Mono',monospace;font-size:10px;padding:10px;cursor:pointer;border-radius:6px;">send feedback</button>
@@ -958,6 +958,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
         <input id="list-editor-private" type="checkbox"/> private list
       </label>
       <div class="slabel">cover image</div>
+      <div class="explore-cover-grid" id="list-cover-preset-grid" style="margin:8px 0 10px;"></div>
       <button type="button" class="rate-photo-btn" style="margin-top:0;" onclick="document.getElementById('list-editor-cover-input').click()">upload cover photo</button>
       <input id="list-editor-cover-input" type="file" accept="image/*" style="display:none;" onchange="handleListCoverInput(this)"/>
       <div id="list-cover-frame" class="list-cover-frame" style="display:none;">
@@ -1232,7 +1233,7 @@ const CE={'Coffee':'☕','Cocktails':'🍸','Dinner':'🍽️','Late Night':'�
 const CI={'Coffee':'coffee-first spots: morning fuel, not a full bar night.','Cocktails':'drinks-led: bars, wine bars, cocktail rooms.','Dinner':'sit-down meals worth planning around.','Late Night':'open late, after-hours, dives, midnight food.','Quick Bite':'trucks, counters, bbq lines, fast tacos. get in and out.','dive bars':'dive-bar energy: dark, casual, and actually welcoming after-hours.','outdoors':'outdoor tables and fresh air: patios, gardens, and anywhere you can breathe.','wellness':'wellness-friendly spots: sober-friendly, balanced, and feel-good food.','patios + rooftops':'rooftops + patios: outside air, sometimes a view.','music':'where live music shows up in the room.','brunch':'day drinking adjacent: brunch energy.'};
 const PI={'bring your doggo':'yes, your dog can absolutely come.','date night':'you need a spot that feels like effort without being cringe.','late night':'open late, good energy, no panic at 11:30.','remote work':'wifi, plugs, caffeine, and nobody rushing you out.','parent friendly':'kid-safe, parent-sane, still good food.','let loose':'okay, we are outside tonight. start with these.','hit the dance floor':'you want movement, music, and no dead crowd.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
 
-let S={saved:[],lists:{},listPrivacy:{},listMeta:{},listCovers:{},savedExploreLists:{},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
+let S={saved:[],lists:{},listPrivacy:{},listMeta:{},listCovers:{},savedExploreLists:{},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'BETA MEMBER',instagram:'',tiktok:''},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
 let SAVE_SHEET={open:false,placeId:null};
 
 function resolveExploreCoverUrl(listId,defaultIdx){
@@ -1297,6 +1298,11 @@ function setListCoverUI(src,opts){
   setListCoverTransform();
 }
 function removeListCover(){setListCoverUI('');}
+function applyListCoverPreset(i){
+  const src=EXPLORE_COVER_PRESETS[i]||'';
+  if(!src)return;
+  setListCoverUI(src,{x:0,y:0});
+}
 function bindListCoverDrag(){
   const frame=document.getElementById('list-cover-frame');
   if(!frame||frame.dataset.bound==='1')return;
@@ -1323,6 +1329,11 @@ function bindListCoverDrag(){
   };
   frame.addEventListener('pointerup',endDrag);
   frame.addEventListener('pointercancel',endDrag);
+}
+function fillListCoverPresetGrid(){
+  const g=document.getElementById('list-cover-preset-grid');
+  if(!g)return;
+  g.innerHTML=EXPLORE_COVER_PRESETS.map((url,i)=>`<button type="button" class="explore-cover-opt" onclick="applyListCoverPreset(${i})"><img src="${url.replace(/"/g,'&quot;')}" alt="preset ${i+1}"/></button>`).join('');
 }
 function findListForPlaceId(id){
   ensureLists();
@@ -1355,6 +1366,7 @@ function toggleScoreTip(el,ev){
 }
 function openListEditor(existingName){
   ensureLists();ensureListPrivacy();ensureListMeta();
+  fillListCoverPresetGrid();
   const isEdit=!!existingName;
   const key=isEdit?existingName:'';
   const meta=isEdit?(S.listMeta[key]||{desc:'',tags:[]}):{desc:'',tags:[]};
@@ -1427,15 +1439,18 @@ function saveListEditor(){
   toast('list saved.');
 }
 function shareList(name){
-  const meta=S.listMeta&&S.listMeta[name]||{};
-  const payload={title:`frAnk list: ${name}`,text:`${name}${meta.desc?` — ${meta.desc}`:''}`};
+  const isOwn=!!(S.lists&&Object.prototype.hasOwnProperty.call(S.lists,name));
+  const listId=isOwn?userListExploreId(name):name;
+  const meta=isOwn?(S.listMeta&&S.listMeta[name]||{}):{};
+  const url=`${window.location.origin}${window.location.pathname}#list=${encodeURIComponent(listId)}`;
+  const payload={title:`frAnk list: ${isOwn?name:String(name).replace(/^u:/,'')}`,text:`${isOwn?name:String(name)}${meta.desc?` — ${meta.desc}`:''}`,url};
   if(navigator.share){
     navigator.share(payload).catch(()=>{});
     return;
   }
-  const txt=`${payload.title}\n${payload.text||''}`.trim();
+  const txt=`${payload.title}\n${payload.text||''}\n${url}`.trim();
   if(navigator.clipboard&&navigator.clipboard.writeText){
-    navigator.clipboard.writeText(txt).then(()=>toast('list copied. share anywhere.'));
+    navigator.clipboard.writeText(txt).then(()=>toast('list link copied. share anywhere.'));
   }else toast('share this list with friends from your phone share menu.');
 }
 function reconcileSavedFromLists(){
@@ -1509,7 +1524,7 @@ function loadFrankState(){
     ensureListMeta();
     if(typeof data.avatarUrl==='string')S.avatarUrl=data.avatarUrl;
     if(data.account&&typeof data.account==='object')S.account={...S.account,...data.account};
-    if(S.account.membership&&/V0|founding|beta member/i.test(String(S.account.membership)))S.account.membership='Member';
+    S.account.membership='BETA MEMBER';
     if('travelMode' in S.account)delete S.account.travelMode;
     if(data.prefs&&typeof data.prefs==='object')S.prefs={...S.prefs,...data.prefs};
     if(Array.isArray(data.savedEvents))S.savedEvents=data.savedEvents.filter(se=>se&&se.eventId);
@@ -1705,12 +1720,24 @@ function openExplorePreview(listId){
     </div>`;
   }).join('');
   document.getElementById('explore-preview-overlay').classList.add('open');
+  const coverBtn=document.querySelector('.explore-preview-foot .gbtn');
   const saveBtn=document.querySelector('.explore-preview-foot .explore-copy-btn');
+  if(coverBtn){
+    if(L.isOwned){
+      coverBtn.style.display='block';
+      coverBtn.textContent='edit cover photo';
+      coverBtn.onclick=()=>openExploreCoverStudio();
+    }else{
+      coverBtn.style.display='block';
+      coverBtn.textContent='share list';
+      coverBtn.onclick=()=>shareList(L.listName||L.id);
+    }
+  }
   if(saveBtn){
     const saved=isExploreListSaved(L.id);
     if(L.isOwned){
       saveBtn.textContent='share list';
-      saveBtn.onclick=()=>shareList(L.listName);
+      saveBtn.onclick=()=>shareList(L.listName||L.id);
     }else{
       saveBtn.textContent=saved?'saved list':'save list';
       saveBtn.onclick=()=>{saveExploreListToMine(L.id);saveBtn.textContent='saved list';renderExploreFeed();};
@@ -1725,6 +1752,15 @@ function closeExplorePreview(){
   const copyOpen=document.getElementById('copy-explore-sheet')?.classList.contains('open');
   const coverOpen=document.getElementById('explore-cover-modal-bg')?.classList.contains('open');
   if(!copyOpen&&!SAVE_SHEET.open&&!coverOpen)document.body.style.overflow='';
+}
+function maybeOpenSharedListFromHash(){
+  const m=String(window.location.hash||'').match(/^#list=(.+)$/);
+  if(!m)return;
+  const id=decodeURIComponent(m[1]);
+  const L=getExploreListById(id);
+  if(!L)return;
+  switchTab('explore');
+  setTimeout(()=>openExplorePreview(id),60);
 }
 
 function fillExploreCoverPresetGrid(){
@@ -1742,6 +1778,8 @@ function syncExploreCoverSelectionHighlight(){
 }
 function openExploreCoverStudio(){
   if(!EXPLORE_ACTIVE_ID){toast('open a list first.');return;}
+  const L=getExploreListById(EXPLORE_ACTIVE_ID);
+  if(L&&!L.isOwned){toast('only the list owner can edit cover art.');return;}
   PENDING_EXPLORE_COVER=(S.exploreListCovers&&Object.prototype.hasOwnProperty.call(S.exploreListCovers,EXPLORE_ACTIVE_ID))?S.exploreListCovers[EXPLORE_ACTIVE_ID]:null;
   fillExploreCoverPresetGrid();
   syncExploreCoverSelectionHighlight();
@@ -1772,27 +1810,6 @@ function applyExploreCoverPreset(i){
   const img=document.getElementById('explore-preview-cover-img');
   if(img)img.src=EXPLORE_COVER_PRESETS[i];
   syncExploreCoverSelectionHighlight();
-}
-function generateExplorePlaylistCover(){
-  const L=GLOBAL_EXPLORE_LISTS.find(x=>x.id===EXPLORE_ACTIVE_ID);
-  if(!L)return;
-  const c1=document.getElementById('explore-cover-c1')?.value||'#1c3a2a';
-  const c2=document.getElementById('explore-cover-c2')?.value||'#b8e832';
-  const cv=document.createElement('canvas');
-  cv.width=512;cv.height=512;
-  const x=cv.getContext('2d');
-  x.fillStyle=c1;x.fillRect(0,0,512,260);
-  x.fillStyle=c2;x.fillRect(0,260,512,252);
-  x.fillStyle='#1c3a2a';x.fillRect(0,368,512,144);
-  const title=L.title.length>48?L.title.slice(0,45)+'…':L.title;
-  const fs=title.length>34?22:30;
-  x.fillStyle='#f5f0e8';x.font=`800 ${fs}px Barlow Condensed, system-ui, sans-serif`;x.textAlign='center';
-  x.fillText(title,256,210);
-  x.fillStyle='#b8e832';x.font='600 12px "DM Mono", monospace';x.fillText('frAnk · public list',256,456);
-  const data=cv.toDataURL('image/png');
-  PENDING_EXPLORE_COVER=data;
-  const img=document.getElementById('explore-preview-cover-img');
-  if(img)img.src=data;
 }
 function onExploreCoverFile(ev){
   const f=ev.target&&ev.target.files&&ev.target.files[0];
@@ -2569,6 +2586,35 @@ function applyAvatarEverywhere(){
   const init=(p.length>=2?p[0][0]+p[p.length-1][0]:p[0]?p[0][0]:'?').toUpperCase();
   pa.innerHTML=`<span id="av-init">${init}</span>`;
 }
+function applyAvatarPreset(i){
+  const presets=[
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1c3a2a"/><circle cx="100" cy="80" r="34" fill="#b8e832"/><rect x="56" y="120" width="88" height="48" rx="20" fill="#b8e832"/></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="100" height="200" fill="#1c3a2a"/><rect x="100" width="100" height="200" fill="#b8e832"/><circle cx="100" cy="100" r="28" fill="#f5f0e8"/></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#b8e832"/><path d="M0 0h200v120H0z" fill="#1c3a2a"/><circle cx="100" cy="130" r="26" fill="#f5f0e8"/></svg>',
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200"><rect width="200" height="200" fill="#1c3a2a"/><circle cx="100" cy="100" r="58" fill="#2d5a40"/><circle cx="100" cy="100" r="24" fill="#b8e832"/></svg>'
+  ];
+  const src=presets[i];
+  if(!src)return;
+  S.avatarUrl=`data:image/svg+xml;utf8,${encodeURIComponent(src)}`;
+  markProfileDirty();
+  applyAvatarEverywhere();
+  persistFrankState();
+  toast('avatar preset applied.');
+}
+function connectSocial(platform){
+  const label=platform==='instagram'?'Instagram':'TikTok';
+  const key=platform==='instagram'?'instagram':'tiktok';
+  const curr=(S.account&&S.account[key])?String(S.account[key]):'';
+  const val=prompt(`connect ${label}: enter your @handle`,curr||'');
+  if(val===null)return;
+  const clean=String(val).trim().replace(/^@+/,'');
+  if(!clean){toast(`${label} not connected.`);return;}
+  if(!S.account)S.account={};
+  S.account[key]=clean;
+  markProfileDirty();
+  persistFrankState();
+  toast(`${label} connected as @${clean}.`);
+}
 function showHeaderAccountMenu(e){
   e.stopPropagation();
   const f=document.getElementById('account-flyout');
@@ -3094,6 +3140,8 @@ window.fireCat=fireCat;
 window.firePrompt=firePrompt;
 window.handleAv=handleAv;
 window.handleRatePhoto=handleRatePhoto;
+window.applyAvatarPreset=applyAvatarPreset;
+window.connectSocial=connectSocial;
 window.hkey=hkey;
 window.markProfileDirty=markProfileDirty;
 window.openCopyExploreSheet=openCopyExploreSheet;
@@ -3102,7 +3150,6 @@ window.openExploreCoverStudio=openExploreCoverStudio;
 window.closeExploreCoverStudio=closeExploreCoverStudio;
 window.commitExploreCoverChanges=commitExploreCoverChanges;
 window.applyExploreCoverPreset=applyExploreCoverPreset;
-window.generateExplorePlaylistCover=generateExplorePlaylistCover;
 window.onExploreCoverFile=onExploreCoverFile;
 window.openFullCard=openFullCard;
 window.openListFolderModal=openListFolderModal;
@@ -3154,6 +3201,7 @@ window.updateInit=updateInit;
 
 // ── INIT ──────────────────────────────────────────────────────
 document.getElementById('explore-cover-file')?.addEventListener('change',onExploreCoverFile);
+window.addEventListener('hashchange',maybeOpenSharedListFromHash);
 loadFrankState();
 (function(){
   document.getElementById('q-text').textContent='"'+DQ.q+'"';
@@ -3175,6 +3223,7 @@ loadFrankState();
   w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</div></div>`;
   body.appendChild(w);
   syncChatTopCompact();
+  maybeOpenSharedListFromHash();
 })();
 </script>
 </body>
