@@ -11,6 +11,8 @@ body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Aria
 .card{background:#fff;border:1px solid #ddd8cc;border-radius:12px;padding:14px}
 h1{margin:0 0 6px;font-size:28px;color:#1c3a2a}
 .sub{font-size:13px;color:#5c5c4a;line-height:1.5;margin:0 0 14px}
+.toggle{display:flex;align-items:center;gap:8px;margin:8px 0 2px;font-size:12px;color:#1c3a2a}
+.toggle input{width:auto;transform:translateY(1px)}
 label{display:block;font-size:12px;font-weight:700;margin:10px 0 6px;color:#1c3a2a;text-transform:uppercase;letter-spacing:.04em}
 input,select,textarea{width:100%;padding:10px 11px;border:1px solid #c8c0ac;border-radius:8px;font-size:14px;background:#fff;color:#1a1a0f}
 textarea{min-height:90px;resize:vertical}
@@ -21,6 +23,8 @@ button{border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:po
 .secondary{background:#ede6d6;color:#1c3a2a}
 .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 #preview{margin-top:12px;padding:10px;border:1px dashed #c8c0ac;border-radius:8px;background:#fbf8f1;white-space:pre-wrap;font-size:12px}
+.thumbs{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+.thumb{width:74px;height:74px;border-radius:8px;border:1px solid #d8d1c0;background:#f9f5ea;object-fit:cover}
 .hint{font-size:12px;color:#6a6a5a;margin-top:8px;line-height:1.45}
 @media(max-width:640px){.row{grid-template-columns:1fr}}
 </style>
@@ -30,6 +34,7 @@ button{border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:po
     <div class="card">
       <h1>frAnk intake</h1>
       <p class="sub">Capture places, events, and feedback from your phone. This creates one compact JSONL entry at a time so imports stay context-light.</p>
+      <label class="toggle"><input id="quick-mode" type="checkbox"/> quick mode (minimal fields OK)</label>
 
       <div class="row">
         <div>
@@ -63,9 +68,12 @@ button{border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:po
 
       <label for="assets">Screenshot/image links (comma separated)</label>
       <input id="assets" placeholder="https://..., https://..."/>
+      <label for="shots">Or upload screenshots (from your phone)</label>
+      <input id="shots" type="file" accept="image/*" multiple/>
+      <div id="thumbs" class="thumbs"></div>
 
       <div class="btns">
-        <button class="primary" onclick="copyEntry()">copy JSONL entry</button>
+        <button class="primary" onclick="copyEntry()">copy 1 entry</button>
         <button class="secondary" onclick="queueEntry()">add to local queue</button>
         <button class="secondary" onclick="copyQueue()">copy queued batch</button>
         <button class="secondary" onclick="clearQueue()">clear queue</button>
@@ -76,11 +84,21 @@ button{border:none;border-radius:8px;padding:10px 12px;font-weight:700;cursor:po
     </div>
   </div>
 
-<script>
+<script type="module">
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 const KEY = "frank_intake_queue_v1";
 const el = id => document.getElementById(id);
 const FOUNDER_PIN_KEY = "frank_founder_pin";
 const FOUNDER_ACCESS_KEY = "frank_founder_access";
+const SHOTS = [];
+
+// Supabase upload (publishable key is safe for browser usage).
+const SUPABASE_URL = "https://epkmuucrwtmaywhculhe.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_oxjVX7gYgVUIzqmir-yM_g_c9fqpYrU";
+const SUPABASE_BUCKET = "frAnk_remoteupdate";
+const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+  auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false }
+});
 
 function denyAccess(msg){
   document.body.innerHTML = '<div class="wrap"><div class="card"><h1>access denied</h1><p class="sub">'+msg+'</p></div></div>';
@@ -108,19 +126,122 @@ requireFounderAccess();
 function parseAssets(v){
   return String(v||"").split(",").map(s=>s.trim()).filter(Boolean);
 }
+function isQuickMode(){
+  return !!el("quick-mode")?.checked;
+}
+function toDataURL(file){
+  return new Promise((resolve,reject)=>{
+    const fr=new FileReader();
+    fr.onload=()=>resolve(String(fr.result||""));
+    fr.onerror=reject;
+    fr.readAsDataURL(file);
+  });
+}
+function compressDataURL(src,maxW=1280,quality=0.78){
+  return new Promise((resolve,reject)=>{
+    const img=new Image();
+    img.onload=()=>{
+      const scale=Math.min(1,maxW/img.width);
+      const w=Math.max(1,Math.round(img.width*scale));
+      const h=Math.max(1,Math.round(img.height*scale));
+      const c=document.createElement("canvas");
+      c.width=w;c.height=h;
+      const g=c.getContext("2d");
+      g.drawImage(img,0,0,w,h);
+      resolve(c.toDataURL("image/jpeg",quality));
+    };
+    img.onerror=reject;
+    img.src=src;
+  });
+}
+function renderThumbs(){
+  const t=el("thumbs");
+  if(!t)return;
+  t.innerHTML=SHOTS.map(s=>`<img class="thumb" src="${s.dataUrl}" alt="${(s.name||"shot").replace(/"/g,"&quot;")}"/>`).join("");
+}
+
+let _anonSessionEnsured = false;
+async function ensureAnonSession(){
+  if(_anonSessionEnsured) return;
+  const { data: sessData, error: sessErr } = await supabase.auth.getSession();
+  if(sessErr) throw new Error(sessErr.message || String(sessErr));
+  if(sessData?.session){ _anonSessionEnsured = true; return; }
+  const { error: signInErr } = await supabase.auth.signInAnonymously();
+  if(signInErr) throw new Error(signInErr.message || String(signInErr));
+  _anonSessionEnsured = true;
+}
+
+async function handleShotUpload(ev){
+  const files=Array.from(ev.target.files||[]);
+  if(!files.length)return;
+  if(!confirm(`Upload ${files.length} screenshot(s) to Supabase?`)) return;
+  try{
+    await ensureAnonSession();
+    for(const f of files){
+      // Thumbnail (small) for local preview only.
+      const raw=await toDataURL(f);
+      const dataUrl=await compressDataURL(raw, 560, 0.75);
+
+      const ext=(String(f.name||"img").match(/\.([a-z0-9]+)$/i)?.[1]||"jpg").toLowerCase();
+      const rand=Math.random().toString(16).slice(2);
+      const path=`intake/${Date.now()}-${rand}.${ext}`;
+
+      const { data: upData, error: upErr } = await supabase.storage
+        .from(SUPABASE_BUCKET)
+        .upload(path, f, { upsert: true, contentType: f.type || "image/jpeg" });
+
+      if(upErr) throw new Error(upErr.message || String(upErr));
+
+      const { data: pubData } = supabase.storage.from(SUPABASE_BUCKET).getPublicUrl(path);
+      const publicUrl = pubData?.publicUrl;
+      if(!publicUrl) throw new Error("Could not create public URL for uploaded screenshot.");
+
+      SHOTS.push({
+        name: f.name || "screenshot.jpg",
+        kind: "uploaded_image",
+        dataUrl, // local preview
+        url: publicUrl, // for LLM ingestion
+        path,
+        bytesApprox: f.size || dataUrl.length
+      });
+    }
+    renderThumbs();
+    buildEntry();
+  }catch(e){
+    console.error(e);
+    alert("Upload failed. Make sure Supabase Storage bucket/policies allow uploads. " + (e?.message || e));
+  }finally{
+    ev.target.value = "";
+  }
+}
+function validateEntry(entry){
+  if(isQuickMode()) return true;
+  if(entry.type==="feedback") return !!entry.notes;
+  return !!entry.name;
+}
+function toScoutHint(entry){
+  const srcs=(entry.assets||[]).length+(entry.screenshots||[]).length;
+  return `somethingnew input: ${entry.type} | ${entry.name||"untitled"} | ${srcs} source(s)`;
+}
 
 function buildEntry(){
   const entry = {
     ts: new Date().toISOString(),
+    command: "somethingnew",
     type: el("type").value,
+    quickMode: isQuickMode(),
     priority: el("priority").value,
     name: el("name").value.trim(),
     link: el("link").value.trim(),
     context: el("hood").value.trim(),
     notes: el("notes").value.trim(),
     assets: parseAssets(el("assets").value),
+    // Provide real image URLs (not base64 blobs) so downstream can fetch.
+    screenshots: SHOTS.map(s => ({ url: s.url, name: s.name })),
+    scoutHint: "",
     status: "new"
   };
+  entry.scoutHint=toScoutHint(entry);
   el("preview").textContent = JSON.stringify(entry);
   return entry;
 }
@@ -135,14 +256,18 @@ async function copyText(t){
 }
 
 async function copyEntry(){
-  const line = JSON.stringify(buildEntry());
+  const e=buildEntry();
+  if(!validateEntry(e)){alert("For full mode, add at least a name/title (or notes for feedback).");return;}
+  const line = JSON.stringify(e);
   await copyText(line);
   alert("Copied 1 JSONL line.");
 }
 
 function queueEntry(){
+  const e=buildEntry();
+  if(!validateEntry(e)){alert("For full mode, add at least a name/title (or notes for feedback).");return;}
   const q = getQueue();
-  q.push(buildEntry());
+  q.push(e);
   setQueue(q);
   alert(`Queued. Total: ${q.length}`);
 }
@@ -163,7 +288,15 @@ function clearQueue(){
 ["type","priority","name","link","hood","notes","assets"].forEach(id => {
   el(id).addEventListener("input", buildEntry);
 });
+el("quick-mode").addEventListener("change", buildEntry);
+el("shots").addEventListener("change", handleShotUpload);
 buildEntry();
+
+// Expose handlers for inline onclick="" attributes.
+window.copyEntry = copyEntry;
+window.queueEntry = queueEntry;
+window.copyQueue = copyQueue;
+window.clearQueue = clearQueue;
 </script>
 </body>
 </html>
