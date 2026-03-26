@@ -106,6 +106,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
 .frank-card-grid{margin-top:10px;width:100%;max-width:100%;}
 .frank-card-grid .place-card{margin-bottom:0;}
+.frank-card-grid-inner{width:min(100%,720px);margin:0 auto;}
 .frank-tag{display:inline-block;background:var(--lime);color:var(--forest);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;margin-right:7px;font-family:'DM Mono',monospace;text-transform:lowercase;vertical-align:middle;}
 .user-bubble{background:var(--cream-dark);border:1px solid #d8d0bc;border-radius:14px 3px 14px 14px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:80%;margin-left:auto;color:var(--ink-mid);margin-bottom:10px;}
 .msg-group{margin-bottom:10px;transition:opacity 0.2s;}
@@ -248,9 +249,10 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .fc-score-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);line-height:1.2;margin-top:2px;max-width:100px;}
 .fc-score-info{position:relative;display:inline-flex;align-self:center;}
 .fc-score-icon{width:16px;height:16px;border-radius:50%;background:var(--forest);color:var(--lime);font-family:'DM Mono',monospace;font-size:9px;display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;}
-.fc-score-tooltip{position:absolute;bottom:calc(100% + 8px);left:50%;transform:translateX(-50%);background:var(--ink);color:#fff;font-family:'DM Mono',monospace;font-size:10px;padding:8px 10px;border-radius:4px;width:min(240px,calc(100vw - 48px));line-height:1.5;display:none;z-index:20;white-space:normal;}
+.fc-score-tooltip{position:absolute;bottom:calc(100% + 8px);left:0;transform:none;background:var(--ink);color:#fff;font-family:'DM Mono',monospace;font-size:10px;padding:8px 10px;border-radius:4px;width:min(240px,calc(100vw - 48px));line-height:1.5;display:none;z-index:20;white-space:normal;}
 .fc-score-tooltip::after{content:'';position:absolute;top:100%;left:50%;transform:translateX(-50%);border:5px solid transparent;border-top-color:var(--ink);}
-.fc-score-info:hover .fc-score-tooltip,.fc-score-info.tip-open .fc-score-tooltip{display:block;}
+.fc-score-block:last-child .fc-score-tooltip{left:auto;right:0;}
+.fc-score-info.tip-open .fc-score-tooltip{display:block;}
 /* Social row */
 .fc-social-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);}
 .fc-social-row a{color:var(--forest);font-weight:500;text-decoration:underline;text-underline-offset:2px;}
@@ -385,10 +387,15 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .list-folder-body{padding:10px 12px 12px;}
 .list-folder-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px;margin-bottom:4px;}
 .list-folder-title{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:14px;text-transform:uppercase;color:var(--forest);line-height:1.15;}
+.list-folder-sub{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink);line-height:1.4;margin-top:4px;}
+.list-folder-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px;}
+.list-folder-tag{font-family:'DM Mono',monospace;font-size:8px;padding:2px 7px;border-radius:9px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);}
 .list-privacy-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:8px;padding-top:8px;border-top:1px solid rgba(28,58,42,0.12);}
-.list-privacy-ico{font-size:14px;line-height:1;width:22px;text-align:center;}
-.list-privacy-ico.priv{color:var(--forest);}
-.list-privacy-ico.pub{color:var(--lime);filter:saturate(1.1);}
+.list-privacy-pill{font-family:'DM Mono',monospace;font-size:8px;padding:3px 7px;border-radius:10px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);text-transform:uppercase;letter-spacing:0.04em;}
+.list-row-actions{display:flex;align-items:center;gap:6px;}
+.list-mini-btn{font-family:'DM Mono',monospace;font-size:8px;padding:4px 8px;border-radius:10px;border:1px solid #cfc7b4;background:#fff;color:var(--ink);cursor:pointer;}
+.list-create-card{border:1px dashed #bfb6a1;background:#f7f2e7;display:flex;align-items:center;justify-content:center;min-height:128px;cursor:pointer;}
+.list-create-inner{font-family:'DM Mono',monospace;font-size:10px;color:var(--forest);text-align:center;}
 .priv-toggle{display:inline-flex;border:1px solid #c8c0ac;border-radius:16px;overflow:hidden;background:var(--cream);}
 .priv-toggle button{font-family:'DM Mono',monospace;font-size:7px;padding:5px 8px;border:none;cursor:pointer;background:transparent;color:var(--ink-light);text-transform:uppercase;letter-spacing:0.04em;}
 .priv-toggle button.on{background:var(--forest);color:var(--lime);}
@@ -489,13 +496,15 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .feedback-actions-row{display:flex;gap:8px;flex-wrap:wrap;}
 .feedback-btn-primary{flex:1;min-width:120px;background:var(--forest);color:var(--lime);border:none;font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:13px;text-transform:uppercase;padding:11px 12px;border-radius:6px;cursor:pointer;}
 .feedback-btn-secondary{background:transparent;color:var(--forest);border:1.5px solid var(--forest);font-family:'DM Mono',monospace;font-size:10px;padding:9px 12px;border-radius:6px;cursor:pointer;}
+.screen-feedback-link{padding:6px 2px 8px;text-align:center;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);}
+.screen-feedback-link button{background:transparent;border:none;color:var(--forest);text-decoration:underline;text-underline-offset:2px;font-family:'DM Mono',monospace;font-size:10px;cursor:pointer;padding:0;}
 .feedback-topic-grid{display:flex;flex-direction:column;gap:6px;}
 .feedback-thanks{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink-mid);line-height:1.55;margin-bottom:12px;}
 </style>
 </head>
 <body>
 
-<div class="beta-status-bar">frAnk · Austin · the better list</div>
+<div class="beta-status-bar">FRANK · AUSTIN · BETA · THE BETTER LIST</div>
 
 <!-- ONBOARDING -->
 <div id="onboarding" style="position:fixed;inset:0;background:#1c3a2a;z-index:999;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;">
@@ -561,17 +570,19 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       <div class="prompts-scroll">
         <div class="prompts-row">
           <button class="prompt-chip" onclick="firePrompt('dog friendly patio coffee','🐶 bring your doggo')">🐶 bring your doggo</button>
-          <button class="prompt-chip" onclick="firePrompt('date night restaurant romantic','🕯 date night works')">🕯 date night works</button>
-          <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 late night works')">🌙 late night works</button>
+          <button class="prompt-chip" onclick="firePrompt('date night restaurant romantic','🕯 date night')">🕯 date night</button>
+          <button class="prompt-chip" onclick="firePrompt('late night bar east austin','🌙 late night')">🌙 late night</button>
           <button class="prompt-chip" onclick="firePrompt('coffee outdoor plugs remote work','💻 remote work')">💻 remote work</button>
           <button class="prompt-chip" onclick="firePrompt('kid friendly family restaurant patio','🧸 parent friendly')">🧸 parent friendly</button>
           <button class="prompt-chip" onclick="firePrompt('cocktails party fun margaritas get lit','🥂 let loose')">🥂 let loose</button>
+          <button class="prompt-chip" onclick="firePrompt('dance floor dj party club','🪩 hit the dance floor')">🪩 hit the dance floor</button>
         </div>
       </div>
     </div>
   </div>
 
   <div id="chat-body" style="flex:1;min-height:0;padding:8px 0 10px;display:flex;flex-direction:column;gap:11px;overflow-y:auto;"></div>
+  <div class="screen-feedback-link"><button type="button" onclick="openFeedbackModal()">feedback</button></div>
 
   <div class="input-wrap">
     <textarea class="frank-input" id="user-input" placeholder="ask frAnk anything..." rows="1" onkeydown="hkey(event)" oninput="aresize(this)"></textarea>
@@ -613,6 +624,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);margin-top:16px;line-height:1.7;">curated weekly. tap save to add to your calendar. tickets are just for you. flip public if you want friends to see it.</div>
     </div>
   </div>
+  <div class="screen-feedback-link"><button type="button" onclick="openFeedbackModal()">feedback</button></div>
 </div>
 
 <!-- EXPLORE - global feed (simulated public lists) -->
@@ -632,6 +644,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     <div id="explore-feed" class="explore-feed"></div>
     <div style="font-family:'DM Mono',monospace;font-size:10px;color:var(--ink-ghost);margin-top:8px;line-height:1.6;">public lists are curated samples. tap one to browse spots, then save what you like.</div>
   </div>
+  <div class="screen-feedback-link"><button type="button" onclick="openFeedbackModal()">feedback</button></div>
 </div>
 
 <!-- PROFILE -->
@@ -639,7 +652,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   <div class="frank-header">
     <div style="display:flex;align-items:center;gap:8px;min-width:0;flex:1;">
       <button type="button" onclick="tryLeaveProfile()" style="background:transparent;border:none;color:var(--forest);font-size:24px;cursor:pointer;padding:0;line-height:1;flex-shrink:0;">←</button>
-      <div style="flex:1;min-width:0;"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub" style="text-transform:uppercase;letter-spacing:0.1em;">profile</div></div>
+      <div style="flex:1;min-width:0;"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">profile</div></div>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;">
       <button type="button" class="gbtn" onclick="saveProf()" style="padding:5px 10px;font-size:9px;border:1px solid var(--forest);background:none;border-radius:4px;font-family:'DM Mono',monospace;text-transform:uppercase;cursor:pointer;">save</button>
@@ -715,6 +728,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
       <div style="font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);padding:8px 0;grid-column:1/-1;" id="photo-empty-hint">photos you attach to ratings show here.</div>
     </div>
   </div>
+  <div class="screen-feedback-link"><button type="button" onclick="openFeedbackModal()">feedback</button></div>
 </div>
 
 </div><!-- #app -->
@@ -913,6 +927,30 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
     <button type="button" class="gbtn" style="width:100%;" onclick="closeListFolderModal()">close</button>
   </div>
 </div>
+<div id="list-editor-modal" class="modal-bg" onclick="if(event.target===this)closeListEditor()" style="z-index:430;">
+  <div class="modal-box" onclick="event.stopPropagation()" style="max-width:min(92vw,420px);max-height:86vh;display:flex;flex-direction:column;">
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:18px;text-transform:uppercase;color:var(--forest);margin-bottom:8px;" id="list-editor-title">create list</div>
+    <div style="overflow-y:auto;flex:1;min-height:0;">
+      <div class="slabel">name</div>
+      <input id="list-editor-name" type="text" class="pinput" maxlength="48" placeholder="e.g. birthday dinner run" style="margin-bottom:10px;"/>
+      <div class="slabel">description</div>
+      <textarea id="list-editor-desc" class="rate-notes" style="min-height:62px;margin-top:0;margin-bottom:10px;" placeholder="what this list is for"></textarea>
+      <div class="slabel">tags (comma separated)</div>
+      <input id="list-editor-tags" type="text" class="pinput" placeholder="date night, patio, family" style="margin-bottom:10px;"/>
+      <label style="display:flex;align-items:center;gap:8px;font-family:'DM Mono',monospace;font-size:10px;color:var(--ink);margin-bottom:10px;cursor:pointer;">
+        <input id="list-editor-private" type="checkbox"/> private list
+      </label>
+      <div class="slabel">cover image</div>
+      <button type="button" class="rate-photo-btn" style="margin-top:0;" onclick="document.getElementById('list-editor-cover-input').click()">upload cover photo</button>
+      <input id="list-editor-cover-input" type="file" accept="image/*" style="display:none;" onchange="handleListCoverInput(this)"/>
+      <img id="list-editor-cover-preview" class="rate-photo-preview" alt=""/>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;">
+      <button type="button" class="feedback-btn-secondary" onclick="closeListEditor()">cancel</button>
+      <button type="button" class="fbtn" style="padding:10px 8px;font-size:12px;" onclick="saveListEditor()">save list</button>
+    </div>
+  </div>
+</div>
 
 <div id="unsaved-modal" class="modal-bg" onclick="if(event.target===this)closeUnsavedModal()">
   <div class="modal-box" onclick="event.stopPropagation()">
@@ -1094,9 +1132,9 @@ let pendingTab=null;
 
 const CE={'Coffee':'☕','Cocktails':'🍸','Dinner':'🍽️','Late Night':'🌙','Quick Bite':'🌮','patios + rooftops':'🌆','music':'🎶','brunch':'🥂'};
 const CI={'Coffee':'coffee-first spots: morning fuel, not a full bar night.','Cocktails':'drinks-led: bars, wine bars, cocktail rooms.','Dinner':'sit-down meals worth planning around.','Late Night':'open late, after-hours, dives, midnight food.','Quick Bite':'trucks, counters, bbq lines, fast tacos. get in and out.','dive bars':'dive-bar energy: dark, casual, and actually welcoming after-hours.','outdoors':'outdoor tables and fresh air: patios, gardens, and anywhere you can breathe.','wellness':'wellness-friendly spots: sober-friendly, balanced, and feel-good food.','patios + rooftops':'rooftops + patios: outside air, sometimes a view.','music':'where live music shows up in the room.','brunch':'day drinking adjacent: brunch energy.'};
-const PI={'bring your doggo':'yes, your dog can absolutely come.','date night works':'you need a spot that feels like effort without being cringe.','late night works':'open late, good energy, no panic at 11:30.','remote work':'wifi, plugs, caffeine, and nobody rushing you out.','parent friendly':'kid-safe, parent-sane, still good food.','let loose':'okay, we are outside tonight. start with these.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
+const PI={'bring your doggo':'yes, your dog can absolutely come.','date night':'you need a spot that feels like effort without being cringe.','late night':'open late, good energy, no panic at 11:30.','remote work':'wifi, plugs, caffeine, and nobody rushing you out.','parent friendly':'kid-safe, parent-sane, still good food.','let loose':'okay, we are outside tonight. start with these.','hit the dance floor':'you want movement, music, and no dead crowd.','weird + wonderful':'not a chain. not obvious. worth the detour.','street food':'no walls, no problem.','touch some grass':'go outside. you need it.','casual bites':'no reservation. just show up and eat.','work from here':'outdoor plugs. good coffee. stay as long as you want.','live music':'places where the music is actually the point.'};
 
-let S={saved:[],lists:{'Morning Rituals':[], 'Late Night Moves':[], 'The Vault':[]},listPrivacy:{'Morning Rituals':'public','Late Night Moves':'public','The Vault':'public'},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
+let S={saved:[],lists:{},listPrivacy:{},listMeta:{},listCovers:{},reviews:0,rateId:null,catRatings:{},reviewPhotos:[],rateDrafts:[],postedReviews:[],ratePhotoData:null,avatarUrl:null,profileDirty:false,exploreListCovers:{},account:{email:'',phone:'',location:'Austin, TX',membership:'Member'},prefs:{publicProfile:true,contributeInsights:true,notifNewPlaces:true,notifFriendUpdates:true,notifBeta:true},savedEvents:[]},CH=[];
 let SAVE_SHEET={open:false,placeId:null};
 
 function resolveExploreCoverUrl(listId,defaultIdx){
@@ -1120,6 +1158,16 @@ function ensureListPrivacy(){
   if(!S.listPrivacy||typeof S.listPrivacy!=='object')S.listPrivacy={};
   Object.keys(S.lists).forEach(nm=>{if(S.listPrivacy[nm]!=='private'&&S.listPrivacy[nm]!=='public')S.listPrivacy[nm]='public';});
 }
+function ensureListMeta(){
+  ensureLists();
+  if(!S.listMeta||typeof S.listMeta!=='object')S.listMeta={};
+  if(!S.listCovers||typeof S.listCovers!=='object')S.listCovers={};
+  Object.keys(S.lists).forEach(nm=>{
+    if(!S.listMeta[nm]||typeof S.listMeta[nm]!=='object')S.listMeta[nm]={desc:'',tags:[]};
+    if(typeof S.listMeta[nm].desc!=='string')S.listMeta[nm].desc='';
+    if(!Array.isArray(S.listMeta[nm].tags))S.listMeta[nm].tags=[];
+  });
+}
 function findListForPlaceId(id){
   ensureLists();
   const names=getAllListNames();
@@ -1138,7 +1186,96 @@ function setListPrivacy(nm,isPrivate){
   if(!S.lists||!(nm in S.lists))return;
   S.listPrivacy[nm]=isPrivate?'private':'public';
   markProfileDirty();
+  renderListFolders();
   renderSavedGrid();
+  persistFrankState();
+}
+function toggleScoreTip(el,ev){
+  if(ev){ev.preventDefault();ev.stopPropagation();}
+  if(!el)return;
+  const on=el.classList.contains('tip-open');
+  document.querySelectorAll('.fc-score-info.tip-open').forEach(n=>n.classList.remove('tip-open'));
+  if(!on)el.classList.add('tip-open');
+}
+function openListEditor(existingName){
+  ensureLists();ensureListPrivacy();ensureListMeta();
+  const isEdit=!!existingName;
+  const key=isEdit?existingName:'';
+  const meta=isEdit?(S.listMeta[key]||{desc:'',tags:[]}):{desc:'',tags:[]};
+  const ttl=document.getElementById('list-editor-title');
+  const name=document.getElementById('list-editor-name');
+  const desc=document.getElementById('list-editor-desc');
+  const tags=document.getElementById('list-editor-tags');
+  const priv=document.getElementById('list-editor-private');
+  const pre=document.getElementById('list-editor-cover-preview');
+  if(ttl)ttl.textContent=isEdit?'edit list':'create list';
+  if(name){name.value=isEdit?key:'';name.dataset.original=isEdit?key:'';}
+  if(desc)desc.value=meta.desc||'';
+  if(tags)tags.value=Array.isArray(meta.tags)?meta.tags.join(', '):'';
+  if(priv)priv.checked=isEdit?(S.listPrivacy[key]==='private'):false;
+  if(pre){
+    const src=isEdit?(S.listCovers&&S.listCovers[key]||''):'';
+    pre.src=src||'';
+    pre.classList.toggle('show',!!src);
+  }
+  const fi=document.getElementById('list-editor-cover-input');if(fi)fi.value='';
+  document.getElementById('list-editor-modal').classList.add('open');
+  document.body.style.overflow='hidden';
+}
+function closeListEditor(){
+  const m=document.getElementById('list-editor-modal');
+  if(m)m.classList.remove('open');
+  if(!document.getElementById('copy-explore-sheet')?.classList.contains('open')&&!document.getElementById('explore-preview-overlay')?.classList.contains('open')&&!document.getElementById('explore-cover-modal-bg')?.classList.contains('open')&&!SAVE_SHEET.open&&!document.getElementById('list-folder-modal')?.classList.contains('open'))document.body.style.overflow='';
+}
+function handleListCoverInput(input){
+  const f=input&&input.files&&input.files[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=e=>{
+    const pre=document.getElementById('list-editor-cover-preview');
+    if(pre){pre.src=e.target.result;pre.classList.add('show');}
+  };
+  r.readAsDataURL(f);
+}
+function saveListEditor(){
+  ensureLists();ensureListPrivacy();ensureListMeta();
+  const nameEl=document.getElementById('list-editor-name');
+  const orig=(nameEl&&nameEl.dataset&&nameEl.dataset.original)||'';
+  const raw=(nameEl&&nameEl.value||'').trim();
+  if(!raw){toast('name your list first.');return;}
+  if(orig!==raw&&Object.prototype.hasOwnProperty.call(S.lists,raw)){toast('you already have that list name.');return;}
+  const ids=orig&&S.lists[orig]?sanitizePlaceIds(S.lists[orig]):[];
+  if(orig&&orig!==raw){
+    delete S.lists[orig];
+    delete S.listPrivacy[orig];
+    delete S.listMeta[orig];
+    delete S.listCovers[orig];
+  }
+  if(!S.lists[raw])S.lists[raw]=ids;
+  const priv=document.getElementById('list-editor-private')?.checked;
+  S.listPrivacy[raw]=priv?'private':'public';
+  const desc=(document.getElementById('list-editor-desc')?.value||'').trim();
+  const tagsRaw=(document.getElementById('list-editor-tags')?.value||'').split(',').map(t=>t.trim()).filter(Boolean);
+  S.listMeta[raw]={desc,tags:[...new Set(tagsRaw)].slice(0,8)};
+  const cover=document.getElementById('list-editor-cover-preview')?.src||'';
+  if(cover&&/^data:image\//.test(cover))S.listCovers[raw]=cover;
+  markProfileDirty();
+  renderListFolders();
+  persistFrankState();
+  closeListEditor();
+  toast('list saved.');
+}
+function shareList(name){
+  const meta=S.listMeta&&S.listMeta[name]||{};
+  const payload={title:`frAnk list: ${name}`,text:`${name}${meta.desc?` — ${meta.desc}`:''}`};
+  if(navigator.share){
+    navigator.share(payload).catch(()=>{});
+    return;
+  }
+  const txt=`${payload.title}\n${payload.text||''}`.trim();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(()=>toast('list copied. share anywhere.'));
+  }else toast('share this list with friends from your phone share menu.');
 }
 function reconcileSavedFromLists(){
   ensureLists();
@@ -1150,12 +1287,14 @@ function reconcileSavedFromLists(){
 function persistFrankState(){
   try{
     const pn=document.getElementById('p-name');
-    ensureListPrivacy();
+    ensureListPrivacy();ensureListMeta();
     const data={
       name:pn?pn.value.trim():'',
       saved:sanitizePlaceIds(S.saved.slice()),
       lists:{},
       listPrivacy:{...S.listPrivacy},
+      listMeta:{...(S.listMeta||{})},
+      listCovers:{...(S.listCovers||{})},
       reviews:S.reviews|0,
       reviewPhotos:Array.isArray(S.reviewPhotos)?S.reviewPhotos.map(ph=>({src:ph.src,placeId:ph.placeId||null,pub:ph.pub!==false})):[],
       avatarUrl:S.avatarUrl||null,
@@ -1202,6 +1341,9 @@ function loadFrankState(){
     if(Array.isArray(data.postedReviews))S.postedReviews=data.postedReviews.filter(r=>r&&PLACE_IDS.has(r.placeId));
     else S.postedReviews=[];
     if(data.listPrivacy&&typeof data.listPrivacy==='object')Object.keys(data.listPrivacy).forEach(nm=>{if(data.listPrivacy[nm]==='private'||data.listPrivacy[nm]==='public')S.listPrivacy[nm]=data.listPrivacy[nm];});
+    if(data.listMeta&&typeof data.listMeta==='object')S.listMeta={...data.listMeta};
+    if(data.listCovers&&typeof data.listCovers==='object')S.listCovers={...data.listCovers};
+    ensureListMeta();
     if(typeof data.avatarUrl==='string')S.avatarUrl=data.avatarUrl;
     if(data.account&&typeof data.account==='object')S.account={...S.account,...data.account};
     if(S.account.membership&&/V0|founding|beta member/i.test(String(S.account.membership)))S.account.membership='Member';
@@ -1256,24 +1398,33 @@ function closeListFolderModal(){
   if(!document.getElementById('copy-explore-sheet')?.classList.contains('open')&&!document.getElementById('explore-preview-overlay')?.classList.contains('open')&&!document.getElementById('explore-cover-modal-bg')?.classList.contains('open')&&!SAVE_SHEET.open)document.body.style.overflow='';
 }
 function renderListFolders(){
-  ensureLists();ensureListPrivacy();
+  ensureLists();ensureListPrivacy();ensureListMeta();
   const wrap=document.getElementById('list-folders-wrap');
   if(!wrap)return;
   const visible=getAllListNames();
-  wrap.innerHTML=visible.map(nm=>{
+  const cards=visible.map(nm=>{
     const ids=sanitizePlaceIds(S.lists[nm]||[]);
     const c=ids.length;
     const first=c?PLACES.find(x=>x.id===ids[0]):null;
     const safe=listDisplayName(nm).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
     const isPriv=S.listPrivacy[nm]==='private';
     const esc=nm.replace(/\\/g,'\\\\').replace(/'/g,"\\'");
-    const icon=isPriv
-      ?'<span class="list-privacy-ico priv" title="private">🔒</span>'
-      :'<span class="list-privacy-ico pub" title="public">🌐</span>';
-    const thumb=first?`<div class="list-folder-visual"><img src="${placeThumbUrl(first).replace(/"/g,'&quot;')}" alt=""/></div>`:`<div class="list-folder-visual" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--forest) 0%,var(--forest-mid) 100%);"><span style="font-size:30px;line-height:1;" aria-hidden="true">${listFolderEmoji(nm)}</span></div>`;
-    const row=`<div class="list-privacy-row" onclick="event.stopPropagation();">${icon}<div class="priv-toggle"><button type="button" class="${!isPriv?'on':''}" onclick="setListPrivacy('${esc}',false)">public</button><button type="button" class="${isPriv?'on':''}" onclick="setListPrivacy('${esc}',true)">private</button></div></div>`;
-    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);">${spotCountLabel(c)}</div>${row}</div></div>`;
-  }).join('');
+    const meta=S.listMeta[nm]||{desc:'',tags:[]};
+    const desc=String(meta.desc||'').trim();
+    const tags=(meta.tags||[]).slice(0,3).map(t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;'));
+    const cover=S.listCovers&&S.listCovers[nm];
+    const thumb=cover
+      ?`<div class="list-folder-visual"><img src="${String(cover).replace(/"/g,'&quot;')}" alt=""/></div>`
+      :first
+        ?`<div class="list-folder-visual"><img src="${placeThumbUrl(first).replace(/"/g,'&quot;')}" alt=""/></div>`
+        :`<div class="list-folder-visual" style="display:flex;align-items:center;justify-content:center;background:linear-gradient(155deg,var(--forest) 0%,var(--forest-mid) 100%);"><span style="font-size:30px;line-height:1;" aria-hidden="true">${listFolderEmoji(nm)}</span></div>`;
+    const row=`<div class="list-privacy-row" onclick="event.stopPropagation();"><span class="list-privacy-pill">${isPriv?'private':'public'}</span><div class="list-row-actions"><button type="button" class="list-mini-btn" onclick="openListEditor('${esc}')">edit</button><button type="button" class="list-mini-btn" onclick="shareList('${esc}')">share</button></div></div>`;
+    const tagRow=tags.length?`<div class="list-folder-tags">${tags.map(t=>`<span class="list-folder-tag">${t}</span>`).join('')}</div>`:'';
+    const descRow=desc?`<div class="list-folder-sub">${desc.replace(/</g,'&lt;')}</div>`:'';
+    return `<div class="list-folder-card" style="cursor:pointer;" onclick="event.stopPropagation();openListFolderModal(${JSON.stringify(nm)})" role="button" tabindex="0">${thumb}<div class="list-folder-body"><div class="list-folder-head"><div class="list-folder-title">${safe}</div></div><div style="font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);">${spotCountLabel(c)}</div>${descRow}${tagRow}${row}</div></div>`;
+  });
+  cards.unshift(`<div class="list-folder-card list-create-card" onclick="openListEditor()"><div class="list-create-inner">+ create list<br/>name, tags, cover, share</div></div>`);
+  wrap.innerHTML=cards.join('');
 }
 
 function switchTab(t){
@@ -1654,7 +1805,7 @@ function renderLiveSavedList(){
         ${showFreeButton
           ?`<button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventRsvp('${se.eventId}')">${se.rsvp?'✓ free rsvp':'free rsvp'}</button>`
           :''}
-        <button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventCalPublic('${se.eventId}')">${pub?'🌐':'🔒'}</button>
+        <button type="button" style="font-size:8px;padding:4px 8px;border:1px solid #ddd8cc;background:var(--cream);border-radius:4px;cursor:pointer;" onclick="toggleEventCalPublic('${se.eventId}')">${pub?'public':'private'}</button>
       </span>
     </div>`;
   }).filter(Boolean).join('')||'<div style="font-family:\'DM Mono\',monospace;font-size:9px;color:var(--ink-ghost);">no events on this day.</div>';
@@ -1830,7 +1981,7 @@ function match(q,catO){
   }).sort((a,b)=>b.score-a.score).slice(0,4);
 }
 function showCards(places,intro,lbl){
-  const gridInner=places.length?`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">${places.map(card).join('')}</div>`:'';
+  const gridInner=places.length?`<div class="frank-card-grid-inner" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px;">${places.map(card).join('')}</div>`:'';
   const body=document.getElementById('chat-body');
   const w=document.createElement('div');
   w.className='msg-group fu';
@@ -2009,7 +2160,7 @@ function openFullCard(id){
               <div class="fc-score">${sc}<span class="fc-score-denom">/5</span></div>
               <div class="fc-score-label">frAnk score</div>
             </div>
-            <div class="fc-score-info" onclick="this.classList.toggle('tip-open')"><div class="fc-score-icon">i</div>
+            <div class="fc-score-info" onclick="toggleScoreTip(this,event)"><div class="fc-score-icon">i</div>
               <div class="fc-score-tooltip">blend of what frAnk tracks: room, food, scene, consistency. not a vote. one number.</div>
             </div>
           </div>
@@ -2018,7 +2169,7 @@ function openFullCard(id){
               <div class="fc-score">${wsc}<span class="fc-score-denom">/5</span></div>
               <div class="fc-score-label">web reviews</div>
             </div>
-            <div class="fc-score-info" onclick="this.classList.toggle('tip-open')"><div class="fc-score-icon">i</div>
+            <div class="fc-score-info" onclick="toggleScoreTip(this,event)"><div class="fc-score-icon">i</div>
               <div class="fc-score-tooltip">average of public ratings from across the web (google, tripadvisor, yelp, etc.), normalized to a 5-point scale.</div>
             </div>
           </div>
@@ -2055,7 +2206,8 @@ function openFullCard(id){
       <button type="button" class="fc-act-btn${sv?' fc-saved':''}" id="fcb-${id}" onclick="openSaveSheet(${id})">${sv?'♥ saved':'♡ save'}</button>
       <button type="button" class="fc-act-btn" onclick="openShare(${id})">↗ share</button>
       <button type="button" class="fc-act-btn fc-act-rate" onclick="closeFullCard();openRate(${id});">★ rate</button>
-    </div>`;
+    </div>
+    <div class="screen-feedback-link" style="padding-top:2px;"><button type="button" onclick="openFeedbackModal()">feedback</button></div>`;
 
   document.getElementById('full-card-modal').classList.add('open');
   body.scrollTop=0;
@@ -2260,9 +2412,7 @@ function toggleSave(id){
 
 function ensureLists(){
   if(!S.lists||typeof S.lists!=='object')S.lists={};
-  if(!Array.isArray(S.lists['Morning Rituals']))S.lists['Morning Rituals']=[];
-  if(!Array.isArray(S.lists['Late Night Moves']))S.lists['Late Night Moves']=[];
-  if(!Array.isArray(S.lists['The Vault']))S.lists['The Vault']=[];
+  Object.keys(S.lists).forEach(nm=>{if(!Array.isArray(S.lists[nm]))S.lists[nm]=[];});
 }
 
 function syncSaveButtons(id){
@@ -2304,12 +2454,13 @@ function createListAndAddPlace(){
   if(!id)return;
   const raw=document.getElementById('save-sheet-new-name')?.value.trim();
   if(!raw){toast('name your list first.');return;}
-  ensureLists();
+  ensureLists();ensureListMeta();
   if(Object.prototype.hasOwnProperty.call(S.lists,raw)){toast('you already have that list name.');return;}
   const priv=document.getElementById('save-sheet-new-private')?.checked;
   S.lists[raw]=[];
   ensureListPrivacy();
   S.listPrivacy[raw]=priv?'private':'public';
+  S.listMeta[raw]={desc:'',tags:[]};
   saveToList(raw);
 }
 function openSaveSheet(id){
@@ -2401,6 +2552,8 @@ document.addEventListener('keydown',e=>{
   if(fb&&fb.classList.contains('open')){closeFeedbackModal();return;}
   const lfm=document.getElementById('list-folder-modal');
   if(lfm&&lfm.classList.contains('open')){closeListFolderModal();return;}
+  const lem=document.getElementById('list-editor-modal');
+  if(lem&&lem.classList.contains('open')){closeListEditor();return;}
   const um=document.getElementById('unsaved-modal');
   if(um&&um.classList.contains('open')){closeUnsavedModal();return;}
   const copySheet=document.getElementById('copy-explore-sheet');
@@ -2412,6 +2565,10 @@ document.addEventListener('keydown',e=>{
   const fc=document.getElementById('full-card-modal');
   if(fc&&fc.classList.contains('open')){closeFullCard();return;}
   if(SAVE_SHEET.open)closeSaveSheet();
+});
+document.addEventListener('click',e=>{
+  if(e.target&&e.target.closest&&e.target.closest('.fc-score-info'))return;
+  document.querySelectorAll('.fc-score-info.tip-open').forEach(n=>n.classList.remove('tip-open'));
 });
 function openShare(id){const p=PLACES.find(x=>x.id===id);document.getElementById('share-name').textContent=p?p.name:'';document.getElementById('m-share').classList.add('open');}
 function doShare(pl){closeModals();toast('shared to '+pl+' ✓');}
@@ -2746,7 +2903,9 @@ window.generateExplorePlaylistCover=generateExplorePlaylistCover;
 window.onExploreCoverFile=onExploreCoverFile;
 window.openFullCard=openFullCard;
 window.openListFolderModal=openListFolderModal;
+window.openListEditor=openListEditor;
 window.closeListFolderModal=closeListFolderModal;
+window.closeListEditor=closeListEditor;
 window.openRate=openRate;
 window.openSaveSheet=openSaveSheet;
 window.openShare=openShare;
@@ -2755,6 +2914,7 @@ window.resumeRatingDraft=resumeRatingDraft;
 window.saveProf=saveProf;
 window.saveSettings=saveSettings;
 window.saveToList=saveToList;
+window.saveListEditor=saveListEditor;
 window.selectLiveCalDay=selectLiveCalDay;
 window.sendMsg=sendMsg;
 window.setCatRating=setCatRating;
@@ -2772,6 +2932,9 @@ window.toggleEventCalPublic=toggleEventCalPublic;
 window.toggleEventRsvp=toggleEventRsvp;
 window.toggleEventSaved=toggleEventSaved;
 window.toggleReviewPhotoPub=toggleReviewPhotoPub;
+window.toggleScoreTip=toggleScoreTip;
+window.handleListCoverInput=handleListCoverInput;
+window.shareList=shareList;
 window.triggerBetaFeedback=triggerBetaFeedback;
 window.openFeedbackModal=openFeedbackModal;
 window.closeFeedbackModal=closeFeedbackModal;
