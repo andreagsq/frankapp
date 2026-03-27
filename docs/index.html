@@ -2250,7 +2250,7 @@ function pickPreferUnseenFromDeco(deco,limit,alreadyShown){
       out.push(row);
     }
   }
-  return out.slice(0,limit).map(({score,adj,...p})=>p);
+  return out.slice(0,limit).map(({score,adj,chipTagScore,frankLayer,intentScore,frankTok,reviewTok,...p})=>p);
 }
 /** Re-rank top pool: deprioritize recently surfaced ids; slight explore boost for cold spots. */
 function pickDiversePicks(ranked, catKey, limit, opts){
@@ -2289,6 +2289,66 @@ function pickDiversePicks(ranked, catKey, limit, opts){
   return pickPreferUnseenFromDeco(deco,limit,alreadyShown);
 }
 
+const TEXT_QUERY_STOPWORDS=new Set(['the','and','for','that','this','with','from','you','are','was','but','not','what','all','can','her','has','had','how','when','just','out','get','one','our','who','its','into','than','then','some','more','very','also','here','where','best','good','nice','real','way','did','she','his','any','too','now','only','own','same','still','each','such','both','make','have','been','even','well','like','ever','want','need','does','will','were','about','their','other','there','which','these','your','them','they','would','could','should','really','yeah','sure','thing','things','stuff','life','much','most','maybe','actually','totally','super','literally','again','once','every','another','something','nothing','anything','everyone','everybody','anywhere','everywhere','gonna','wanna']);
+function normalizeMatchText(s){
+  return String(s||'').toLowerCase().replace(/'/g,'').replace(/-/g,' ');
+}
+function tokenWordRegex(token){
+  return new RegExp('\\b'+String(token).replace(/[.*+?^${}()|[\]\\]/g,'\\$&')+'\\b','i');
+}
+function extractQueryTokens(ql){
+  const norm=normalizeMatchText(ql).replace(/[^a-z0-9\s]/g,' ');
+  return norm.split(/\s+/).filter(w=>w.length>=3&&!TEXT_QUERY_STOPWORDS.has(w));
+}
+function countTokenHitsInText(tokens,text){
+  if(!text||!tokens.length)return 0;
+  const t=normalizeMatchText(text);
+  let n=0;
+  for(const tok of tokens){
+    if(tok.length<3)continue;
+    if(tokenWordRegex(tok).test(t))n++;
+  }
+  return n;
+}
+function scoreFrankTextTokens(ql,p){
+  const tokens=extractQueryTokens(ql);
+  if(!tokens.length)return 0;
+  const frankHits=countTokenHitsInText(tokens,p.frank||'');
+  return Math.min(frankHits*5,30);
+}
+function scoreReviewTextTokens(ql,p){
+  const tokens=extractQueryTokens(ql);
+  if(!tokens.length)return 0;
+  const snippets=(Array.isArray(p.reviewSnippets)?p.reviewSnippets:[]).join(' ');
+  let postedNotes='';
+  try{
+    if(typeof S!=='undefined'&&Array.isArray(S.postedReviews)){
+      postedNotes=(S.postedReviews||[]).filter(r=>r&&r.placeId===p.id).map(r=>String(r.notes||'')).join(' ');
+    }
+  }catch(e){}
+  let s=Math.min(countTokenHitsInText(tokens,snippets+' '+postedNotes)*2,10);
+  try{
+    if(typeof S!=='undefined'&&Array.isArray(S.postedReviews)){
+      const notes=(S.postedReviews||[]).filter(r=>r&&r.placeId===p.id);
+      let reviewerBonus=0;
+      for(const r of notes){
+        const note=String(r.notes||'');
+        if(!note.trim())continue;
+        if(tokens.some(tok=>tokenWordRegex(tok).test(normalizeMatchText(note))))reviewerBonus+=1;
+      }
+      s+=Math.min(reviewerBonus,5);
+    }
+  }catch(e){}
+  return s;
+}
+function freeTextQualifies(ct,fl,intent,ft,rv){
+  const core=ct+fl+intent+ft;
+  if(rv>=6&&core<2)return false;
+  if(core>=3)return true;
+  if(core>=1&&rv>=5)return true;
+  return false;
+}
+
 function match(q,catO,moreOpts){
   moreOpts=moreOpts||{};
   const alreadyShownSet=new Set((moreOpts.excludeIds||[]).map(Number));
@@ -2309,64 +2369,82 @@ function match(q,catO,moreOpts){
     return true;
   }).map(p=>{
     p=enrichPlaceTags(p);
-    let s=0;
+    let chipTagScore=0;
+    let frankLayer=0;
     if(catO==='dive bars'){
       const blob=((p.frank||'')+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
-      if(blob.includes('dive bar')||blob.includes('dive')||((p.tags||[]).includes('dive bar'))||((p.tags||[]).includes('dark')&&blob.includes('cave')))s+=14;
-      else if(p.cat==='Late Night'&&blob.includes('dark'))s+=8;
-      else s+=0.25;
+      if(blob.includes('dive bar')||blob.includes('dive')||((p.tags||[]).includes('dive bar'))||((p.tags||[]).includes('dark')&&blob.includes('cave')))frankLayer+=14;
+      else if(p.cat==='Late Night'&&blob.includes('dark'))frankLayer+=8;
+      else frankLayer+=0.25;
     }else if(catO==='outdoors'){
       const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
-      if((p.tags||[]).includes('outdoor'))s+=14;
-      else if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('beer garden'))s+=8;
-      else s+=0.25;
+      if((p.tags||[]).includes('outdoor'))frankLayer+=14;
+      else if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('beer garden'))frankLayer+=8;
+      else frankLayer+=0.25;
     }else if(catO==='wellness'){
       const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))+' '+((p.chips||[]).join(' '))).toLowerCase();
-      if(p.sober)s+=16;
-      if((p.tags||[]).includes('sober friendly'))s+=10;
-      if((p.chips||[]).includes('wellness')||blob.includes('wellness'))s+=10;
-      if(blob.includes('gluten-free')||blob.includes('dairy-free')||blob.includes('seed-oil free'))s+=8;
-      if(s===0)s+=0.25;
+      if(p.sober)frankLayer+=16;
+      if((p.tags||[]).includes('sober friendly'))frankLayer+=10;
+      if((p.chips||[]).includes('wellness')||blob.includes('wellness'))frankLayer+=10;
+      if(blob.includes('gluten-free')||blob.includes('dairy-free')||blob.includes('seed-oil free'))frankLayer+=8;
+      if(frankLayer===0)frankLayer+=0.25;
     }else if(catO==='patios + rooftops'){
       const blob=((p.frank||'')+' '+((p.tags||[]).join(' '))).toLowerCase();
-      if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('roof deck')||blob.includes('beer garden')||(p.tags||[]).includes('outdoor'))s+=14;
-      else s+=0.35;
+      if(blob.includes('patio')||blob.includes('rooftop')||blob.includes('roof deck')||blob.includes('beer garden')||(p.tags||[]).includes('outdoor'))frankLayer+=14;
+      else frankLayer+=0.35;
     }else if(catO==='music'){
-      if((p.tags||[]).includes('live music')||/\b(live music|gospel brunch|concert|venue|stage)\b/i.test(p.frank||''))s+=14;
-      else s+=0.25;
+      if((p.tags||[]).includes('live music')||/\b(live music|gospel brunch|concert|venue|stage)\b/i.test(p.frank||''))frankLayer+=14;
+      else frankLayer+=0.25;
     }else if(catO==='brunch'){
-      if((p.tags||[]).includes('brunch')||(p.chips||[]).includes('day drink')||/\bbrunch\b/i.test(p.frank||''))s+=12;
-      else s+=0.25;
-    }else if(catO&&(p.cat===catO||(p.chips||[]).some(c=>c===catO)))s+=10;
-    (p.chips||[]).forEach(c=>{if(ql.includes(c.toLowerCase()))s+=4;});
-    (p.tags||[]).forEach(t=>{if(ql.includes(t.toLowerCase()))s+=2;});
-    if(pet&&p.pet)s+=5;if(sober&&p.sober)s+=5;if(kid&&p.kid)s+=5;
-    if(ql.includes('east')&&(p.tags||[]).some(t=>t.includes('east')))s+=3;
-    if((ql.includes('work')||ql.includes('plug'))&&(p.tags||[]).includes('remote work'))s+=5;
-    if((ql.includes('music')||ql.includes('live'))&&(p.tags||[]).includes('live music'))s+=5;
-    if((ql.includes('late')||ql.includes('night'))&&(p.chips||[]).some(c=>c.includes('night')))s+=3;
-    if(ql.includes('coffee')&&p.cat==='Coffee')s+=4;
-    if((ql.includes('cocktail')||ql.includes('wine bar')||ql.includes('negroni'))&&p.cat==='Cocktails')s+=4;
-    if((ql.includes('dive')||ql.includes('late night')||ql.includes('after midnight'))&&p.cat==='Late Night')s+=4;
-    if((ql.includes('bbq')||ql.includes('barbecue'))&&(p.frank.includes('brisket')||p.frank.includes('BBQ')||p.frank.includes('barbecue')))s+=8;
-    if(ql.includes('taco')&&p.frank.includes('taco'))s+=5;
-    if(ql.includes('brunch')&&(p.chips||[]).includes('day drink'))s+=5;
-    if((ql.includes('eat')||ql.includes('restaurant')||ql.includes('dinner')||ql.includes('lunch'))&&p.cat==='Dinner')s+=3;
-    if((ql.includes('taco')||ql.includes('bbq')||ql.includes('barbecue')||ql.includes('quick')||ql.includes('truck'))&&p.cat==='Quick Bite')s+=3;
-    if(ql.includes('date')&&(p.chips||[]).includes('date night'))s+=4;
-    if(ql.includes('michelin')&&(p.badge.includes('michelin')||p.frank.includes('michelin')))s+=6;
-    s+=scoreIntentHintsMatch(ql,p);
+      if((p.tags||[]).includes('brunch')||(p.chips||[]).includes('day drink')||/\bbrunch\b/i.test(p.frank||''))frankLayer+=12;
+      else frankLayer+=0.25;
+    }else if(catO&&(p.cat===catO||(p.chips||[]).some(c=>c===catO)))chipTagScore+=10;
+    (p.chips||[]).forEach(c=>{
+      const cl=String(c).toLowerCase();
+      if(ql.includes(cl))chipTagScore+=6;
+      else cl.split(/\s+/).forEach(w=>{if(w.length>=5&&ql.includes(w))chipTagScore+=4;});
+    });
+    (p.tags||[]).forEach(t=>{
+      const tl=String(t).toLowerCase();
+      if(ql.includes(tl))chipTagScore+=4;
+      else tl.split(/\s+/).forEach(w=>{if(w.length>=5&&ql.includes(w))chipTagScore+=2;});
+    });
+    if(pet&&p.pet)chipTagScore+=5;if(sober&&p.sober)chipTagScore+=5;if(kid&&p.kid)chipTagScore+=5;
+    if(ql.includes('east')&&(p.tags||[]).some(t=>t.includes('east')))chipTagScore+=3;
+    if((ql.includes('work')||ql.includes('plug'))&&(p.tags||[]).includes('remote work'))chipTagScore+=5;
+    if((ql.includes('music')||ql.includes('live'))&&(p.tags||[]).includes('live music'))chipTagScore+=5;
+    if((ql.includes('late')||ql.includes('night'))&&(p.chips||[]).some(c=>c.includes('night')))chipTagScore+=3;
+    if(ql.includes('coffee')&&p.cat==='Coffee')chipTagScore+=4;
+    if((ql.includes('cocktail')||ql.includes('wine bar')||ql.includes('negroni'))&&p.cat==='Cocktails')chipTagScore+=4;
+    if((ql.includes('dive')||ql.includes('late night')||ql.includes('after midnight'))&&p.cat==='Late Night')chipTagScore+=4;
+    const ftxt=p.frank||'';
+    if((ql.includes('bbq')||ql.includes('barbecue'))&&(ftxt.includes('brisket')||ftxt.includes('BBQ')||ftxt.includes('barbecue')))frankLayer+=8;
+    if(ql.includes('taco')&&ftxt.includes('taco'))frankLayer+=5;
+    if(ql.includes('brunch')&&(p.chips||[]).includes('day drink'))chipTagScore+=5;
+    if((ql.includes('eat')||ql.includes('restaurant')||ql.includes('dinner')||ql.includes('lunch'))&&p.cat==='Dinner')chipTagScore+=3;
+    if((ql.includes('taco')||ql.includes('bbq')||ql.includes('barbecue')||ql.includes('quick')||ql.includes('truck'))&&p.cat==='Quick Bite')chipTagScore+=3;
+    if(ql.includes('date')&&(p.chips||[]).includes('date night'))chipTagScore+=4;
+    if(ql.includes('michelin')&&(p.badge.includes('michelin')||ftxt.includes('michelin')))frankLayer+=6;
+    const foodBlob=((p.name||'')+' '+ftxt+' '+(p.badge||'')).toLowerCase();
+    if((ql.includes('sandwich')||/\b(subs?|hoagie|grinder|deli|bodega|panini|mortadella)\b/.test(ql))&&(/\b(sandwich|sandwiches|subs?|hoagie|grinder|deli|bodega|panini|mortadella)\b/.test(foodBlob)||foodBlob.includes('sandwich')))frankLayer+=14;
+    const intentScore=scoreIntentHintsMatch(ql,p);
+    const frankTok=scoreFrankTextTokens(ql,p);
+    const reviewTok=scoreReviewTextTokens(ql,p);
     const hintList=(p.intentHints||[]).map(h=>String(h).toLowerCase());
-    const blobAll=((p.frank||'')+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))+' '+((p.chips||[]).join(' '))+' '+hintList.join(' ')).toLowerCase();
+    const blobAll=(ftxt+' '+(p.badge||'')+' '+((p.tags||[]).join(' '))+' '+((p.chips||[]).join(' '))+' '+hintList.join(' ')).toLowerCase();
     const hasMargIntent=(p.intentHints||[]).some(h=>String(h).toLowerCase().includes('marg'));
     if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||ql.includes('marg'))&&!hasMargIntent){
-      if(blobAll.includes('margarita')||blobAll.includes('margaritas')||blobAll.includes('margs')||blobAll.includes('marg'))s+=10;
-      if(p.cat==='Cocktails')s+=3;
+      if(blobAll.includes('margarita')||blobAll.includes('margaritas')||blobAll.includes('margs')||blobAll.includes('marg'))frankLayer+=10;
+      if(p.cat==='Cocktails')chipTagScore+=3;
     }
-    if(ql.includes('lunch')&&(blobAll.includes('lunch')||(p.tags||[]).includes('lunch')))s+=8;
-    if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||/\bmarg\b/.test(ql))&&p.id===147)s+=14;
-    if(s===0)s=Math.random()*0.5;
-    return{...p,score:s};
+    if(ql.includes('lunch')&&(blobAll.includes('lunch')||(p.tags||[]).includes('lunch')))frankLayer+=8;
+    if((ql.includes('margarita')||ql.includes('margaritas')||ql.includes('margs')||/\bmarg\b/.test(ql))&&p.id===147)frankLayer+=14;
+    const s=chipTagScore+frankLayer+intentScore+frankTok+reviewTok;
+    return{...p,score:s,chipTagScore,frankLayer,intentScore,frankTok,reviewTok};
+  }).filter(row=>{
+    if(!qStr.trim())return true;
+    if(catO&&!qStr.trim())return true;
+    return freeTextQualifies(row.chipTagScore,row.frankLayer,row.intentScore,row.frankTok,row.reviewTok);
   }).sort((a,b)=>b.score-a.score);
   const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim(), alreadyShown: alreadyShownSet});
   recordCatSurface(catKey, picked.map(p=>p.id));
