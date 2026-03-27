@@ -2263,7 +2263,6 @@ function pickDiversePicks(ranked, catKey, limit, opts){
   const alreadyShown=opts.alreadyShown instanceof Set?opts.alreadyShown:new Set((opts.alreadyShown||[]).map(Number));
   const pool=ranked.slice(0,Math.min(64,ranked.length));
   const rawSpread=pool.length>1?Math.max(...pool.map(r=>r.score))-Math.min(...pool.map(r=>r.score)):0;
-  const maxRaw=pool.length?Math.max(...pool.map(r=>r.score)):0;
   const deco=pool.map(row=>{
     let adj=row.score;
     if(recentIds.has(row.id))adj-=2.15;
@@ -2276,7 +2275,7 @@ function pickDiversePicks(ranked, catKey, limit, opts){
   });
   deco.sort((a,b)=>b.adj-a.adj);
   const freeText=!!opts.freeText;
-  const shuffleTier=categoryBrowse||rawSpread<1.15||(freeText&&maxRaw<6);
+  const shuffleTier=(categoryBrowse||rawSpread<1.15)&&!freeText;
   if(shuffleTier){
     let tierSize;
     if(categoryBrowse)tierSize=Math.min(36,deco.length);
@@ -2343,10 +2342,13 @@ function scoreReviewTextTokens(ql,p){
 }
 function freeTextQualifies(ct,fl,intent,ft,rv){
   const core=ct+fl+intent+ft;
-  if(rv>=6&&core<2)return false;
+  if(rv>=6&&core<1)return false;
   if(core>=3)return true;
   if(core>=1&&rv>=5)return true;
   return false;
+}
+function categoryBrowseQualifies(row){
+  return row.score>=1;
 }
 
 function match(q,catO,moreOpts){
@@ -2442,8 +2444,10 @@ function match(q,catO,moreOpts){
     const s=chipTagScore+frankLayer+intentScore+frankTok+reviewTok;
     return{...p,score:s,chipTagScore,frankLayer,intentScore,frankTok,reviewTok};
   }).filter(row=>{
-    if(!qStr.trim())return true;
-    if(catO&&!qStr.trim())return true;
+    const hasPrompt=!!qStr.trim()||!!catO;
+    if(hasPrompt&&row.score<=0)return false;
+    if(catO&&!qStr.trim())return categoryBrowseQualifies(row);
+    if(!hasPrompt)return true;
     return freeTextQualifies(row.chipTagScore,row.frankLayer,row.intentScore,row.frankTok,row.reviewTok);
   }).sort((a,b)=>b.score-a.score);
   const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim(), alreadyShown: alreadyShownSet});
