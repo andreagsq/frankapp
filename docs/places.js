@@ -6,6 +6,8 @@
 //   intentHintsVocab.js (see INTENT_HINT_CANONICAL_LIST); unknown strings still get a light match.
 //   Used by match() so queries like "best margs" rank correctly even when cat is "Dinner".
 //   (badge/frank may use slang; keep aliases out of intentHints — one canonical key per intent.)
+// reviewSnippets (optional): string[] — short quotes for search matching + context.
+// insiderTip (optional): string — shown as “insider tip” on cards + full modal; overrides generated tip.
 // googleRating / yelpRating: 0–5 stars from public listings (snapshot; drift is normal).
 // rating: round((googleRating + yelpRating) / 2, 1) — same number echoed in // Score: lines.
 // needsQA: true → address, category, scores, or copy should be re-checked by a human.

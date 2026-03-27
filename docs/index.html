@@ -117,6 +117,13 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .frank-card-grid-inner .place-card{
   flex:0 0 clamp(138px,42vw,176px);max-width:clamp(138px,42vw,176px);min-width:0;
   scroll-snap-align:start;scroll-snap-stop:normal;
+  align-self:flex-start;
+  overflow:visible;
+}
+.frank-card-grid-inner .place-card .card-body{flex:0 1 auto;min-height:0;}
+.frank-card-grid-inner .card-tip{
+  margin-top:7px;padding-top:6px;border-top:1px dashed #e0d9c8;
+  -webkit-line-clamp:3;line-clamp:3;font-size:9.5px;flex-shrink:0;color:var(--ink-mid);
 }
 .frank-tag{display:inline-block;background:var(--lime);color:var(--forest);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;margin-right:7px;font-family:'DM Mono',monospace;text-transform:lowercase;vertical-align:middle;}
 .user-bubble{background:var(--cream-dark);border:1px solid #d8d0bc;border-radius:14px 3px 14px 14px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:80%;margin-left:auto;color:var(--ink-mid);margin-bottom:10px;}
@@ -279,6 +286,9 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .fc-vibe{background:var(--forest);border:1px solid var(--forest);border-radius:8px;padding:13px 14px;margin:22px 16px 16px;}
 .fc-vibe-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--lime);letter-spacing:0.1em;margin-bottom:6px;}
 .fc-vibe-text{font-family:'DM Mono',monospace;font-size:12px;color:var(--cream);line-height:1.65;}
+.fc-insider-tip{margin:0 16px 16px;padding:12px 14px;border:1px solid #ddd8cc;border-radius:8px;background:var(--cream-dark);}
+.fc-insider-label{font-family:'DM Mono',monospace;font-size:9px;color:var(--ink-ghost);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px;}
+.fc-insider-text{font-family:'DM Mono',monospace;font-size:11px;color:var(--ink);line-height:1.55;}
 /* Tags */
 .fc-tags{display:flex;flex-wrap:wrap;gap:5px;margin-top:4px;}
 .fctag{font-family:'DM Mono',monospace;font-size:9.5px;padding:5px 9px;border-radius:10px;background:var(--cream-dark);color:var(--ink);border:1px solid #ddd8cc;line-height:1.25;}
@@ -1118,6 +1128,11 @@ function insiderTipFromPlace(p){
     return overlap<2;
   });
   return tip||'ask what regulars order, that is usually the best move here.';
+}
+function insiderTipDisplay(p){
+  const ed=String(p.insiderTip||'').trim();
+  if(ed)return ed;
+  return insiderTipFromPlace(p);
 }
 function friendReviewsHTML(p){
   const rows=[
@@ -2140,7 +2155,7 @@ function card(p){
   const sv=S.saved.includes(p.id);
   const vt=vibeTag(p);
   const img=placeThumbUrl(p);
-  const insiderTip=insiderTipFromPlace(p).replace(/</g,'&lt;');
+  const insiderTip=insiderTipDisplay(p).replace(/</g,'&lt;');
   return`<div class="place-card fu">
     <div class="card-img" onclick="openFullCard(${p.id})" style="cursor:pointer;">
       <img src="${img}" alt="${p.name}" onerror="this.style.display='none'" loading="lazy"/>
@@ -2220,6 +2235,23 @@ function frankShuffle(arr){
     arr[j]=t;
   }
 }
+/** Prefer ids not yet on this card strip; if the pool is exhausted, recycle (shuffle-down behavior vs hard exclude). */
+function pickPreferUnseenFromDeco(deco,limit,alreadyShown){
+  const shownSet=alreadyShown&&alreadyShown.size?alreadyShown:new Set();
+  const out=[];
+  for(const row of deco){
+    if(out.length>=limit)break;
+    if(!shownSet.has(row.id))out.push(row);
+  }
+  if(out.length<limit){
+    for(const row of deco){
+      if(out.length>=limit)break;
+      if(out.some(x=>x.id===row.id))continue;
+      out.push(row);
+    }
+  }
+  return out.slice(0,limit).map(({score,adj,...p})=>p);
+}
 /** Re-rank top pool: deprioritize recently surfaced ids; slight explore boost for cold spots. */
 function pickDiversePicks(ranked, catKey, limit, opts){
   opts=opts||{};
@@ -2228,11 +2260,14 @@ function pickDiversePicks(ranked, catKey, limit, opts){
   const recent=frankLoadJson(FRANK_SHOW_KEY,{});
   const recentIds=new Set((recent[catKey]||[]).slice(0,36));
   const eng=frankLoadJson(FRANK_ENG_KEY,{});
+  const alreadyShown=opts.alreadyShown instanceof Set?opts.alreadyShown:new Set((opts.alreadyShown||[]).map(Number));
   const pool=ranked.slice(0,Math.min(64,ranked.length));
   const rawSpread=pool.length>1?Math.max(...pool.map(r=>r.score))-Math.min(...pool.map(r=>r.score)):0;
+  const maxRaw=pool.length?Math.max(...pool.map(r=>r.score)):0;
   const deco=pool.map(row=>{
     let adj=row.score;
     if(recentIds.has(row.id))adj-=2.15;
+    if(alreadyShown.has(row.id))adj-=11;
     const ex=eng[row.id];
     if(!ex||(!(ex.o)&&!(ex.s)))adj+=0.5;
     else adj-=0.04*Math.min(16,(ex.o||0)+(ex.s||0)*2);
@@ -2241,7 +2276,7 @@ function pickDiversePicks(ranked, catKey, limit, opts){
   });
   deco.sort((a,b)=>b.adj-a.adj);
   const freeText=!!opts.freeText;
-  const shuffleTier=categoryBrowse||rawSpread<1.15||freeText;
+  const shuffleTier=categoryBrowse||rawSpread<1.15||(freeText&&maxRaw<6);
   if(shuffleTier){
     let tierSize;
     if(categoryBrowse)tierSize=Math.min(36,deco.length);
@@ -2249,14 +2284,14 @@ function pickDiversePicks(ranked, catKey, limit, opts){
     else tierSize=Math.min(24,deco.length);
     const tier=deco.slice(0,tierSize);
     frankShuffle(tier);
-    return tier.slice(0,limit).map(({score,adj,...p})=>p);
+    return pickPreferUnseenFromDeco(tier,limit,alreadyShown);
   }
-  return deco.slice(0,limit).map(({score,adj,...p})=>p);
+  return pickPreferUnseenFromDeco(deco,limit,alreadyShown);
 }
 
 function match(q,catO,moreOpts){
   moreOpts=moreOpts||{};
-  const exclude=new Set((moreOpts.excludeIds||[]).map(Number));
+  const alreadyShownSet=new Set((moreOpts.excludeIds||[]).map(Number));
   const ql=q.toLowerCase();
   const qStr=String(q||'').trim();
   const catKey=catO||(qStr?'_q:'+frankHashStr(qStr):'_browse');
@@ -2268,7 +2303,6 @@ function match(q,catO,moreOpts){
   const pet=(ql.includes('dog')||ql.includes('pup')||ql.includes('pet'));
   const kid=(ql.includes('kid')||ql.includes('child')||ql.includes('family')||ql.includes('toddler'));
   const ranked=PLACES.filter(p=>{
-    if(exclude.has(p.id))return false;
     if(sober&&!p.sober)return false;
     if(pet&&!p.pet)return false;
     if(kid&&!p.kid)return false;
@@ -2334,7 +2368,7 @@ function match(q,catO,moreOpts){
     if(s===0)s=Math.random()*0.5;
     return{...p,score:s};
   }).sort((a,b)=>b.score-a.score);
-  const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim()});
+  const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim(), alreadyShown: alreadyShownSet});
   recordCatSurface(catKey, picked.map(p=>p.id));
   return picked;
 }
@@ -2524,6 +2558,7 @@ function openFullCard(id){
   const ttUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' tiktok austin')}`;
   const webUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' austin official website')}`;
   const frankEsc=cleanFrankLine(p.frank).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+  const insiderEsc=insiderTipDisplay(p).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const urls=placeGalleryUrls(p);
   const brows=[vibeTag(p),(p.badge||'local pick').slice(0,42),(p.price||'')+' · '+(CE[p.cat]||'')];
   const slides=urls.map((u,i)=>`<div class="fc-carousel-slide"><img src="${u}" alt="" loading="lazy"/><div class="fc-carousel-overlay"></div><div class="fc-carousel-eyebrow">${String(brows[i]||vibeTag(p)).replace(/</g,'&lt;')}</div></div>`).join('');
@@ -2587,6 +2622,10 @@ function openFullCard(id){
     <div class="fc-vibe">
       <div class="fc-vibe-label">frAnk says</div>
       <div class="fc-vibe-text">${frankEsc}</div>
+    </div>
+    <div class="fc-insider-tip">
+      <div class="fc-insider-label">insider tip</div>
+      <div class="fc-insider-text">${insiderEsc}</div>
     </div>
     <div class="fc-section">
       <div class="fc-section-label">tags</div>
