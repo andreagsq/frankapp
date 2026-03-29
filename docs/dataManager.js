@@ -2,8 +2,8 @@
 // later split `places.js` into /data chunks without touching app code again.
 // Self-contained under docs/: places.js + intentHintsVocab.js live next to this file.
 // After editing ../../places.js at App Dev root, copy: cp ../../places.js ./places.js (same for intentHintsVocab.js)
-import { PLACES, QUOTES, EVENTS } from './places.js?v=20260401';
-export { INTENT_HINT_CANONICAL_LIST, INTENT_HINT_VOCAB } from './intentHintsVocab.js?v=20260401';
+import { PLACES, QUOTES, EVENTS } from './places.js?v=20260402';
+export { INTENT_HINT_CANONICAL_LIST, INTENT_HINT_VOCAB } from './intentHintsVocab.js?v=20260402';
 
 export { PLACES, QUOTES, EVENTS };
 
