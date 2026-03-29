@@ -1147,8 +1147,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 </div>
 
 <script type='module'>
-import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260403';
-import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260403';
+import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260405';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260405';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
 function pickHeaderQuote(){
   const nd=new Date();
@@ -2763,16 +2763,23 @@ function openFullCard(id){
   const wsc=webReviewScore(p);
   const mapsUrl=`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(p.name+' '+p.addr)}`;
   const street=p.addr.split(',')[0];
-  const igUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' instagram austin')}`;
+  const igHandle=String(p.ig||'').trim().replace(/^@/,'');
+  const igUrl=igHandle?`https://www.instagram.com/${igHandle}/`:'';
   const ttUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' tiktok austin')}`;
-  const webUrl=`https://www.google.com/search?q=${encodeURIComponent(p.name+' austin official website')}`;
+  const webRaw=String(p.website||'').trim();
+  const webUrl=webRaw?(/^https?:\/\//i.test(webRaw)?webRaw:`https://${webRaw}`):`https://www.google.com/search?q=${encodeURIComponent(p.name+' austin official website')}`;
   const frankEsc=cleanFrankLine(p.frank).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const insiderEsc=insiderTipDisplay(p).replace(/&/g,'&amp;').replace(/</g,'&lt;');
   const urls=placeGalleryUrls(p);
   const brows=[vibeTag(p),(p.badge||'local pick').slice(0,42),(p.price||'')+' · '+(CE[p.cat]||'')];
   const slides=urls.map((u,i)=>`<div class="fc-carousel-slide"><img src="${u}" alt="" loading="lazy"/><div class="fc-carousel-overlay"></div><div class="fc-carousel-eyebrow">${String(brows[i]||vibeTag(p)).replace(/</g,'&lt;')}</div></div>`).join('');
   const dots=urls.map((_,i)=>`<button type="button" class="fc-carousel-dot${i===0?' on':''}" aria-label="photo ${i+1}"></button>`).join('');
-  const hoursTxt=p.hours?p.hours:'hours vary · check google maps';
+  const hoursTxt=p.hours?p.hours:'hours vary · confirm same day';
+  const socialParts=[];
+  if(igUrl)socialParts.push(`<a href="${igUrl}" target="_blank" rel="noopener">instagram</a>`);
+  socialParts.push(`<a href="${ttUrl}" target="_blank" rel="noopener">tiktok</a>`);
+  socialParts.push(`<a href="${webUrl}" target="_blank" rel="noopener">website</a>`);
+  const socialRow=socialParts.join('<span class="fc-pipe">|</span>');
   document.getElementById('fc-name-display').textContent=p.name;
   const fromListPreview=document.getElementById('explore-preview-overlay')?.classList.contains('open');
   const closeBtn=document.getElementById('fc-close-btn');
@@ -2808,24 +2815,10 @@ function openFullCard(id){
               <div class="fc-score-label">web reviews</div>
             </div>
             <div class="fc-score-info" onclick="toggleScoreTip(this,event)"><div class="fc-score-icon">i</div>
-              <div class="fc-score-tooltip">average of public ratings from across the web (google, tripadvisor, yelp, etc.), normalized to a 5-point scale.</div>
+              <div class="fc-score-tooltip">average of public star ratings pooled from listings around the web, normalized to a 5-point scale.</div>
             </div>
           </div>
         </div>
-      </div>
-    </div>
-    <div class="fc-section">
-      <div class="fc-section-label">hours open</div>
-      <div class="fc-hours">🕐 ${hoursTxt.replace(/</g,'&lt;')}</div>
-    </div>
-    <div class="fc-section fc-section-social">
-      <div class="fc-section-label">social · website</div>
-      <div class="fc-social-row">
-        <a href="${igUrl}" target="_blank" rel="noopener">instagram</a>
-        <span class="fc-pipe">|</span>
-        <a href="${ttUrl}" target="_blank" rel="noopener">tiktok</a>
-        <span class="fc-pipe">|</span>
-        <a href="${webUrl}" target="_blank" rel="noopener">website</a>
       </div>
     </div>
     <div class="fc-vibe">
@@ -2835,6 +2828,14 @@ function openFullCard(id){
     <div class="fc-insider-tip">
       <div class="fc-insider-label">insider tip</div>
       <div class="fc-insider-text">${insiderEsc}</div>
+    </div>
+    <div class="fc-section">
+      <div class="fc-section-label">hours open</div>
+      <div class="fc-hours">🕐 ${hoursTxt.replace(/</g,'&lt;')}</div>
+    </div>
+    <div class="fc-section fc-section-social">
+      <div class="fc-section-label">social · website</div>
+      <div class="fc-social-row">${socialRow}</div>
     </div>
     <div class="fc-section">
       <div class="fc-section-label">tags</div>
