@@ -1,13 +1,18 @@
 // Austin place database + daily quote pool — loaded as ES module
 //
+// Runtime single source of truth: this file. Edits to data/PLACE_QA_WORKBENCH.csv or
+// data/PLACE_QA_TEMPLATE.txt do NOT load in the app until merged here (frank, hours,
+// website, ig, tags, chips, insiderTip, etc.).
+//
 // ── DATA CONTRACT ─────────────────────────────────────────────
 // cat (strict): "Coffee" | "Cocktails" | "Dinner" | "Late Night" | "Quick Bite"
 // intentHints (optional): string[] — insider search hooks. Prefer canonical labels from
 //   intentHintsVocab.js (see INTENT_HINT_CANONICAL_LIST); unknown strings still get a light match.
 //   Used by match() so queries like "best margs" rank correctly even when cat is "Dinner".
 //   (badge/frank may use slang; keep aliases out of intentHints — one canonical key per intent.)
-// reviewSnippets (optional): string[] — short quotes for search matching + context.
-// insiderTip (optional): string — shown as “insider tip” on cards + full modal; overrides generated tip.
+// reviewSnippets (optional): string[] — short quotes from community/friend reviews (or editorial).
+//   match() token-matches these against the query; more overlapping keywords → stronger rank.
+// insiderTip (optional): string — one-liner shown as “insider tip” on cards + full place modal; overrides generated tip.
 // googleRating / yelpRating: 0–5 stars from public listings (snapshot; drift is normal).
 // rating: round((googleRating + yelpRating) / 2, 1) — same number echoed in // Score: lines.
 // needsQA: true → address, category, scores, or copy should be re-checked by a human.
@@ -18,7 +23,6 @@
 // ── QUOTES ────────────────────────────────────────────────────
 export const QUOTES=[
   {q:"eating alone at a restaurant is not sad. paying for bad food with someone you love is sad.",attr:"frAnk on priorities"},
-  {q:"you don't need a reason to go somewhere new. you need a reason to stay home.",attr:"frAnk on excuses"},
   {q:"the best meal you'll ever have is in a place you almost didn't walk into.",attr:"frAnk on commitment issues"},
   {q:"traveling doesn't make you interesting. what you eat when you travel might.",attr:"frAnk on personality"},
   {q:"a bar with no natural light is either a dive or a vibe. same result.",attr:"frAnk on ambiance"},
@@ -44,16 +48,44 @@ export const QUOTES=[
   {q:"you don't need a group chat to figure out where to eat. you need frAnk.",attr:"frAnk on group chats"},
   {q:"the best view in any city is from somewhere locals actually go.",attr:"frAnk on tourists"},
   {q:"ambiance is just vibes with better lighting.",attr:"frAnk on interior design"},
-  {q:"you spent 45 minutes looking for a restaurant and ordered domino's. we don't have to live like this.",attr:"frAnk on research"}
+  {q:"you spent 45 minutes looking for a restaurant and ordered domino's. we don't have to live like this.",attr:"frAnk on research"},
+
+  {q:"Getting lost is just a more expensive way of finding yourself. I suggest the latter.",attr:"frAnk on Travel & Exploration"},
+  {q:"A plan is just a list of things you aren't doing yet. Stay flexible.",attr:"frAnk on Itineraries"},
+  {q:"If you can't carry it, you don't need it. Unless it's an emotional burden; those fly for free.",attr:"frAnk on Packing"},
+  {q:"The best thing you can bring back from a trip is a story that sounds slightly exaggerated.",attr:"frAnk on Souvenirs"},
+  {q:"The modern postcard is a blurry photo of a sunset that your friends will look at for exactly one second.",attr:"frAnk on Postcards"},
+  {q:"A city doesn't belong to you until you've found a shortcut that only you and the locals know.",attr:"frAnk on New Cities"},
+
+  {q:"If it tastes good, it's authentic to your palate. Let the historians argue the rest.",attr:"frAnk on Fusion"},
+  {q:"Sharing is caring, but triple-checking that everyone got exactly one shrimp is a full-time job.",attr:"frAnk on Small Plates"},
+  {q:"Being exactly on time is a lost art. Being five minutes late is a fashion statement.",attr:"frAnk on Reservations"},
+  {q:"If the lighting is dim enough, the logic dictates that the calories don't actually count.",attr:"frAnk on Calories"},
+  {q:"If the server describes it with more than three adjectives, they're trying to sell you a memory, not a meal.",attr:"frAnk on 'The Special'"},
+  {q:"The difference between breakfast and brunch is just a side of avocado toast and a complete lack of urgency.",attr:"frAnk on Brunch"},
+
+  {q:"It's only 'early' if you haven't had coffee yet. After that, it's just timing.",attr:"frAnk on Day Drinking"},
+  {q:"The move is a living thing. If you try to pin it down, it just moves somewhere else.",attr:"frAnk on 'The Move'"},
+  {q:"You can't be the life of the party if you're spending the whole night filming it for people who aren't there.",attr:"frAnk on Presence"},
+  {q:"Four people is a dinner. Six people is a party. Eight people is a logistical nightmare I'm here to solve.",attr:"frAnk on Good Groups"},
+  {q:"The person who says 'let's just split it evenly' usually ordered the third round of tequila. Watch the logic.",attr:"frAnk on Tab Etiquette"},
+  {q:"You aren't missing out; you're just currently in a different chapter of the night. I’ll help you skip to the good part.",attr:"frAnk on FOMO"},
+
+  {q:"Good lighting is the difference between a great night and a very long conversation about skincare.",attr:"frAnk on Lighting"},
+  {q:"Less is more, except when it comes to legroom and the length of the happy hour.",attr:"frAnk on Minimalism"},
+  {q:"If a chair is beautiful but hurts to sit in, it's not furniture- it's a test of your commitment to the vibe.",attr:"frAnk on Aesthetics"},
+  {q:"If you can't hear your own thoughts, make sure they weren't important thoughts anyway.",attr:"frAnk on Background Music"},
+  {q:"If a room smells like expensive firewood and old money, you're probably about to pay $22 for a cocktail. Enjoy it.",attr:"frAnk on Scent"},
+  {q:"Objects in the mirror are exactly as good-looking as they feel after two drinks. Trust the reflection.",attr:"frAnk on Mirrors"}
 ];
 
 export const PLACES=[
   // Score: 4.6 (G: 4.7, Y: 4.5)
-  {id:100,name:"Knuckle Sandwich",cat:"Quick Bite",googleRating:4.7,yelpRating:4.5,rating:4.6,needsQA:true,badge:"pickleball + mortadella",addr:"3016 S Lamar Blvd, Austin, TX",hood:"South Austin",price:"$$",rc:400,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"it's a food truck inside a pickleball bar, which sounds like a bad idea until you're eating a mortadella sub with a crispy parmesan sheet in it and watching strangers play pickleball — then it's the best idea.",tags:["dogs","outdoor","sober friendly","south austin"],chips:["dogs welcome","street food","casual bites"],lat:30.242,lng:-97.754,sober:true,pet:true},
+  {id:100,name:"Knuckle Sandwich",cat:"Quick Bite",googleRating:4.7,yelpRating:4.5,rating:4.6,needsQA:false,badge:"pickleball + mortadella",addr:"3016 S Lamar Blvd, Austin, TX",hood:"South Austin",price:"$$",rc:400,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"east-coast bodega deli inside a brewery with a pickleball court — OG knucksandwich, chefs with serious fine-dining receipts, pup charcuterie with real meat for your dog, and a food-truck energy that still feels like the best sandwich in town.",tags:["dogs","outdoor","sober friendly","south austin"],chips:["dogs welcome","street food","casual bites"],intentHints:["sandwiches","bodega"],reviewSnippets:["life-changing sandwich energy","mortadella sub is unreal"],insiderTip:"michelin-trained crew, pup charcuterie for dogs, OG knucksandwich — ask what's new if the menu shifted.",hours:"Sun 11am–3pm; Tue–Wed 11am–3pm; Thu–Sat 11am–8pm; closed Mon",website:"https://www.knucklesandwichatx.com/",ig:"knucklesandwich_atx",lat:30.242,lng:-97.754,sober:true,pet:true},
   // Score: 4.3 (G: 4.4, Y: 4.2)
-  {id:101,name:"Lou's Barton Springs",cat:"Dinner",googleRating:4.4,yelpRating:4.2,rating:4.3,needsQA:true,badge:"post-swim patio",addr:"2109 S Lamar Blvd, Austin, TX",hood:"Zilker",price:"$$",rc:443,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"it's the right call when half the group just got out of Barton Springs — big patio, QR code ordering, nobody's judging your wet hair.",tags:["dogs","outdoor","kids ok","sober friendly"],chips:["dogs welcome","day drink","casual bites"],lat:30.261,lng:-97.771,sober:true,pet:true,kid:true},
+  {id:101,name:"Lou's Barton Springs",cat:"Dinner",googleRating:4.4,yelpRating:4.2,rating:4.3,needsQA:false,badge:"post-swim patio",addr:"1608 Barton Springs Rd, Austin, TX",hood:"Zilker",price:"$$",rc:443,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"american roadside classics after a swim — complimentary garage parking at this location, summer movie nights projected in the lot at sundown, fat burgers, mean wings, margs worth the stop. also eastside at 1900 E Cesar Chavez. mon half-off bone-in fried chicken; tue $3 lattes + $10 beer & shot; wed half-off burgers; weekday HH 4–6 wings, coors, frozen margs; thu half-off wine bottles — try the custard.",tags:["dogs","outdoor","kids ok","sober friendly"],chips:["dogs welcome","day drink","casual bites"],insiderTip:"summer movie nights in the Barton lot; save room for custard after wings or margs.",hours:"Barton: Mon–Fri 11am–10pm, Sat–Sun 9am–10pm; Eastside: daily 9am–10pm; HH weekdays 4–6pm",website:"https://www.lousaustin.com/",ig:"lousaustin",lat:30.264,lng:-97.763,sober:true,pet:true,kid:true},
   // Score: 4.3 (G: 4.3, Y: 4.3)
-  {id:102,name:"Hillside Farmacy",cat:"Dinner",googleRating:4.3,yelpRating:4.3,rating:4.3,needsQA:true,badge:"eater austin pick",addr:"1209 E 11th St, Austin, TX",hood:"East Austin",price:"$$$",rc:486,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"it's a restored 1920s drugstore where the back patio turns into a DJ cocktail garden on weekends — tell your date it's casual, show up knowing it's not.",tags:["dogs","outdoor","late night","sober friendly","east austin"],chips:["dogs welcome","date night","survive the night"],lat:30.262,lng:-97.724,sober:true,pet:true},
+  {id:102,name:"Hillside Farmacy",cat:"Dinner",googleRating:4.3,yelpRating:4.3,rating:4.3,needsQA:false,badge:"eater austin pick",addr:"1209 E 11th St, Austin, TX",hood:"East Austin",price:"$$$",rc:486,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"family-owned new american inside a texas historical landmark — husband & wife team, farm-to-table gulf + texas proteins, cocktail garden friday & saturday nights. dog-friendly heated & cooled patios; sunday brunch patio energy; private wine room when you need a room.",tags:["dogs","outdoor","late night","sober friendly","east austin"],chips:["dogs welcome","date night","survive the night"],insiderTip:"cocktail garden fri–sat; sunday brunch on the patio — book the private wine room for a group night.",website:"https://www.hillsidefarmacy.com/",ig:"hillside_farmacy",lat:30.262,lng:-97.724,sober:true,pet:true},
   // Score: 4.4 (G: 4.5, Y: 4.3)
   {id:103,name:"Quickie Pickie",cat:"Quick Bite",googleRating:4.5,yelpRating:4.3,rating:4.4,needsQA:true,badge:"bodega + bar + tacos",addr:"1207 E 7th St, Austin, TX",hood:"East Austin",price:"$",rc:529,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"part bodega, part bar, part taco spot — open until midnight and the kind of place where you end up buying weird local hot sauce and eating breakfast tacos at 10pm.",tags:["dogs","outdoor","late night","remote work","kids ok","sober friendly"],chips:["dogs welcome","survive the night","work from here","casual bites"],intentHints:["bodega","tacos","remote work","late_night"],lat:30.271,lng:-97.729,sober:true,pet:true,kid:true},
   // Score: 4.3 (G: 4.4, Y: 4.2)
@@ -67,11 +99,11 @@ export const PLACES=[
   // Score: 4.5 (G: 4.6, Y: 4.4)
   {id:108,name:"ATX Cocina",cat:"Dinner",googleRating:4.6,yelpRating:4.4,rating:4.5,needsQA:true,badge:"100% gluten free",addr:"110 San Antonio St, Austin, TX",hood:"Downtown",price:"$$$",rc:744,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"entirely gluten-free without making it your whole personality — your celiac friend can eat the entire menu, and the pecan-crusted wagyu carne asada will make everyone else forget they're eating clean.",tags:["dogs","outdoor","sober friendly","date night"],chips:["dogs welcome","date night"],lat:30.267,lng:-97.743,sober:true,pet:true},
   // Score: 4.7 (G: 4.8, Y: 4.6)
-  {id:110,name:"La Santa Barbacha",cat:"Quick Bite",googleRating:4.8,yelpRating:4.6,rating:4.7,needsQA:true,badge:"michelin bib gourmand",addr:"1209 E 7th St, Austin, TX",hood:"East Austin",price:"$",rc:830,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"michelin bib gourmand taco truck on a bar patio — order the pink horchata and the benito taco and act like you've been coming here since before the guide found it.",tags:["dogs","outdoor","kids ok","sober friendly","east austin"],chips:["dogs welcome","casual bites"],lat:30.265,lng:-97.718,sober:true,pet:true,kid:true},
+  {id:110,name:"La Santa Barbacha",cat:"Quick Bite",googleRating:4.8,yelpRating:4.6,rating:4.7,needsQA:false,badge:"michelin bib gourmand",addr:"2806 Manor Rd, Austin, TX",hood:"East Austin",price:"$",rc:830,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"michelin bib gourmand comida mexicana — three siblings from central mexico parked with fleet coffee + howdy's vintage: barbacoa chilaquiles bowl is the hangover move, aguas frescas blended to order. westside outpost 1214 W 6th St Ste 100 if you're on that side of town.",tags:["dogs","outdoor","kids ok","sober friendly","east austin"],chips:["dogs welcome","casual bites"],insiderTip:"barbacoa chilaquiles when you're rough; aguas frescas blended to order — same lot as Fleet + Howdy's.",hours:"Eastside daily 7am–3pm; Westside daily 9am–3pm",website:"https://www.lasantabarbacha.com/",ig:"lasantabarbacha",lat:30.287,lng:-97.717,sober:true,pet:true,kid:true},
   // Score: 4.5 (G: 4.5, Y: 4.5)
   {id:111,name:"Oria",cat:"Dinner",googleRating:4.5,yelpRating:4.5,rating:4.5,needsQA:true,badge:"wood-fired mediterranean",addr:"2115 S Lamar Blvd, Austin, TX",hood:"Zilker",price:"$$$",rc:873,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"wood-fired mediterranean with a patio oven visible from the street and a kitchen open until 2am on weekends — it's the place you go when dinner needs to feel like an event.",tags:["dogs","outdoor","late night","sober friendly","date night"],chips:["dogs welcome","date night","survive the night"],lat:30.261,lng:-97.771,sober:true,pet:true},
   // Score: 4.5 (G: 4.5, Y: 4.5)
-  {id:112,name:"Casa Bianca",cat:"Dinner",googleRating:4.5,yelpRating:4.5,rating:4.5,needsQA:true,badge:"weirdo italian",addr:"1501 E 7th St, Austin, TX",hood:"East Austin",price:"$$$",rc:116,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"a former Uchi chef making 'weirdo Italian' in East Austin — show up tuesday for the fried chicken and champagne or sunday when the industry crowd makes it the best $10 cocktail night in town.",tags:["dogs","outdoor","east austin","date night"],chips:["dogs welcome","date night"],lat:30.262,lng:-97.724,pet:true},
+  {id:112,name:"Casa Bianca",cat:"Dinner",googleRating:4.5,yelpRating:4.5,rating:4.5,needsQA:false,badge:"weirdo italian",addr:"1510 E Cesar Chavez St, Austin, TX",hood:"East Austin",price:"$$$",rc:116,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"handmade italian-ish from joe zoccoli & richard thomas — bauhaus art deco room, maximalist patio, full bar. happy hour 4–6 daily: $1 murder point oysters (cap 12), $10 confit chili wings, $10 cocktails, $2 off wine — chef folds japanese technique into italy-by-way-of-texas plates.",tags:["dogs","outdoor","east austin","date night"],chips:["dogs welcome","date night"],insiderTip:"HH 4–6: $1 murder point oysters (cap 12), $10 wings & cocktails — Italian technique with a Japanese-trained kitchen.",hours:"HH daily 4–6pm",website:"https://www.casabiancaatx.com/",ig:"casabiancaatx",lat:30.259,lng:-97.731,pet:true},
   // Score: 4.2 (G: 4.3, Y: 4.1)
   {id:113,name:"Lou's Eastside",cat:"Dinner",googleRating:4.3,yelpRating:4.1,rating:4.2,needsQA:true,badge:"original lou's",addr:"1617 E 6th St, Austin, TX",hood:"East Austin",price:"$$",rc:159,photo:"https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=600&q=80",frank:"the original Lou's — same rotisserie chicken and half-off wing happy hour, but on the East side where the patio actually feels like Austin instead of a tourist corridor.",tags:["dogs","outdoor","kids ok","sober friendly","east austin"],chips:["dogs welcome","day drink","casual bites"],lat:30.262,lng:-97.724,sober:true,pet:true,kid:true},
   // Score: 4.5 (G: 4.6, Y: 4.4)

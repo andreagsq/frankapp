@@ -1,7 +1,9 @@
 // Thin data layer: re-exports place + quote + event data. Import from here so we can
 // later split `places.js` into /data chunks without touching app code again.
-import { PLACES, QUOTES, EVENTS } from './places.js';
-export { INTENT_HINT_CANONICAL_LIST, INTENT_HINT_VOCAB } from './intentHintsVocab.js';
+// Self-contained under docs/: places.js + intentHintsVocab.js live next to this file.
+// After editing ../../places.js at App Dev root, copy: cp ../../places.js ./places.js (same for intentHintsVocab.js)
+import { PLACES, QUOTES, EVENTS } from './places.js?v=20260330';
+export { INTENT_HINT_CANONICAL_LIST, INTENT_HINT_VOCAB } from './intentHintsVocab.js?v=20260330';
 
 export { PLACES, QUOTES, EVENTS };
 

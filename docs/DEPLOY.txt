@@ -1,0 +1,14 @@
+frAnk docs site (this folder)
+==============================
+• This folder is its own git repo (frankapp/). The parent "App Dev" repo IGNORES frankapp/ — pushing only App Dev does NOT update GitHub Pages if Pages uses the frankapp repo.
+
+• Files: index.html + dataManager.js + places.js + intentHintsVocab.js must deploy together.
+
+• After you edit places.js or intentHintsVocab.js in the parent App Dev folder, copy them here or the live site will stay stale:
+    cd frankapp
+    cp ../places.js docs/places.js
+    cp ../intentHintsVocab.js docs/intentHintsVocab.js
+
+• If the browser still shows old data: bump the ?v=20260330 string in dataManager.js and in the two import lines at the bottom of index.html (forces new JS fetch).
+
+• Hard refresh: Cmd+Shift+R (Mac) or clear site data for the host.

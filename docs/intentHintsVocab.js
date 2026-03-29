@@ -35,6 +35,7 @@ export const INTENT_HINT_VOCAB = {
   events: ['events', 'movie night', 'lights', 'festival'],
   'local icon': ['local favorite', 'locals love', 'iconic austin'],
   bodega: ['bodega', 'corner store'],
+  sandwiches: ['sandwich', 'sandwiches', 'sub', 'subs', 'hoagie', 'grinder', 'deli sandwich'],
 };
 
 /** Canonical labels for copy-paste in insider batches (same strings as keys). */

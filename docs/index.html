@@ -4,7 +4,11 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no"/>
+<meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0"/>
+<meta http-equiv="Pragma" content="no-cache"/>
+<meta http-equiv="Expires" content="0"/>
 <meta name="description" content="frAnk — Austin spots, live events, and lists. The better list."/>
+<!-- Deploy: docs/ is self-contained (places.js, intentHintsVocab.js, dataManager.js). Bump ?v= in script imports after changes. Push frankapp repo — parent App Dev .gitignore ignores frankapp/. -->
 <title>frAnk · the better list · Austin</title>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,800;1,400;1,800&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
@@ -25,6 +29,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .frank-logo{font-weight:800;font-size:clamp(30px, 3.6vw, 44px);letter-spacing:-0.02em;color:var(--forest);line-height:1;}
 .frank-logo span{color:var(--lime);}
 .frank-sub{font-family:'DM Mono',monospace;font-size:8px;color:var(--ink-ghost);letter-spacing:0.05em;margin-top:1px;}
+.frank-logo-btn{display:inline-flex;flex-direction:column;align-items:center;background:transparent;border:none;padding:0;cursor:pointer;font:inherit;color:inherit;-webkit-tap-highlight-color:transparent;text-align:center;}
+.frank-logo-btn .frank-logo,.frank-logo-btn .frank-sub{pointer-events:none;}
 
 /* BETA BAR */
 .beta-status-bar{background:var(--lime);color:var(--forest);font-family:'DM Mono',monospace;font-size:7px;font-weight:800;text-align:center;padding:2px 6px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--forest);position:relative;z-index:1;flex-shrink:0;}
@@ -65,6 +71,32 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
   display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
 }
 .cat-btn:hover .cat-label,.cat-btn.active .cat-label{color:var(--lime);}
+
+/* When frAnk shows place cards: hide quote + prompt chips, compact browse (all viewports) */
+#screen-chat.chat-results-mode #quote-bar{display:none !important;}
+#screen-chat.chat-results-mode .prompt-section{display:none !important;}
+#screen-chat.chat-results-mode .bar-label{display:none;}
+#screen-chat.chat-results-mode .cat-bar{padding:4px 0 6px;}
+#screen-chat.chat-results-mode .cat-grid{margin-bottom:2px;gap:6px;padding:2px 2px 6px;}
+#screen-chat.chat-results-mode .frank-header{padding:4px 0 6px;}
+#screen-chat.chat-results-mode .frank-card-grid{margin-top:6px;}
+#screen-chat.chat-results-mode .screen-feedback-link{padding:2px 2px 4px;}
+
+/* After first message: tighter header chrome so replies stay visible without scrolling */
+#screen-chat.chat-top-compact #quote-bar{padding:8px 12px 10px;border-bottom-width:2px;}
+#screen-chat.chat-top-compact #q-text{font-size:clamp(16px,3.6vw,22px);line-height:1.15;display:-webkit-box;-webkit-line-clamp:2;line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+#screen-chat.chat-top-compact #q-attr{font-size:8px;margin-top:6px;}
+#screen-chat.chat-top-compact .bar-label,
+#screen-chat.chat-top-compact .prompt-label{display:none;}
+#screen-chat.chat-top-compact .cat-bar{padding:6px 0 6px;}
+#screen-chat.chat-top-compact .cat-grid{margin-bottom:4px;gap:6px;}
+#screen-chat.chat-top-compact .cat-btn{min-height:48px;min-width:68px;max-width:104px;padding:5px 10px 4px;}
+#screen-chat.chat-top-compact .cat-emoji{font-size:15px;}
+#screen-chat.chat-top-compact .cat-label{font-size:7.5px;-webkit-line-clamp:1;line-clamp:1;min-height:1.1em;max-width:5.5rem;}
+#screen-chat.chat-top-compact .prompt-section{padding:4px 0 6px;border-top-color:transparent;}
+#screen-chat.chat-top-compact .prompts-scroll{padding:1px 8px 4px;}
+#screen-chat.chat-top-compact .prompt-chip{padding:6px 12px;font-size:10px;}
+
 @media (max-width:560px){
   .cat-bar{padding:6px 0 6px;}
   .cat-btn{min-height:52px;min-width:72px;max-width:108px;padding:6px 10px 5px;}
@@ -106,24 +138,81 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
 .frank-card-grid{margin-top:10px;width:100%;max-width:100%;min-width:0;}
 .frank-card-grid .place-card{margin-bottom:0;}
+/* Horizontal picks: flex row keeps “see more” as the last column (desktop + touch) */
 .frank-card-grid-inner{
-  display:flex;flex-direction:row;flex-wrap:nowrap;gap:10px;width:100%;max-width:100%;min-width:0;
-  overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;
-  scroll-snap-type:x mandatory;scroll-padding:0 12px;padding:2px 0 12px;box-sizing:border-box;
+  display:flex;
+  flex-flow:row nowrap;
+  align-items:stretch;
+  gap:10px;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  overflow-x:auto;
+  overflow-y:hidden;
+  -webkit-overflow-scrolling:touch;
+  overscroll-behavior-x:contain;
+  scroll-snap-type:x mandatory;
+  scroll-padding:0 12px;
+  padding:2px 0 12px;
+  box-sizing:border-box;
   scrollbar-width:thin;
+  touch-action:pan-x pan-y;
 }
 .frank-card-grid-inner::-webkit-scrollbar{height:4px;}
 .frank-card-grid-inner::-webkit-scrollbar-thumb{background:rgba(28,58,42,0.25);border-radius:3px;}
-.frank-card-grid-inner .place-card{
-  flex:0 0 clamp(138px,42vw,176px);max-width:clamp(138px,42vw,176px);min-width:0;
-  scroll-snap-align:start;scroll-snap-stop:normal;
-  align-self:flex-start;
+.frank-card-grid-inner > .place-card,
+.frank-card-grid-inner > .frank-see-more-wrap{
+  display:flex;
+  flex-shrink:0;
+  box-sizing:border-box;
+}
+.frank-card-grid-inner > .place-card{
+  flex-direction:column;
+  align-items:stretch;
+  width:clamp(138px,42vw,176px);
+  min-width:clamp(138px,42vw,176px);
+  max-width:clamp(138px,42vw,176px);
+  scroll-snap-align:start;
+  scroll-snap-stop:normal;
   overflow:visible;
+}
+.frank-card-grid-inner > .frank-see-more-wrap{
+  flex-direction:row;
+  align-items:center;
+  justify-content:center;
+  align-self:center;
 }
 .frank-card-grid-inner .place-card .card-body{flex:0 1 auto;min-height:0;}
 .frank-card-grid-inner .card-tip{
   margin-top:7px;padding-top:6px;border-top:1px dashed #e0d9c8;
   -webkit-line-clamp:3;line-clamp:3;font-size:9.5px;flex-shrink:0;color:var(--ink-mid);
+}
+@media (max-width:560px){
+  .frank-card-grid-inner{
+    overflow-x:scroll !important;
+    overflow-y:hidden !important;
+    touch-action:pan-x pan-y;
+    -webkit-overflow-scrolling:touch;
+    scroll-snap-type:none !important;
+  }
+  .frank-card-grid-inner{padding-bottom:8px;scroll-padding-left:8px;scroll-padding-right:10px;gap:8px;}
+  .frank-card-grid-inner > .place-card{
+    width:clamp(108px,28.5vw,136px);
+    min-width:clamp(108px,28.5vw,136px);
+    max-width:clamp(108px,28.5vw,136px);
+  }
+  .frank-card-grid-inner .card-img{height:72px;}
+  .frank-card-grid-inner .card-body{padding:5px 6px;}
+  .frank-card-grid-inner .card-name{font-size:11px;}
+  .frank-card-grid-inner .card-meta{font-size:8.5px;}
+  .frank-card-grid-inner .card-frank{margin-top:4px;font-size:9.5px;line-height:1.4;}
+  .frank-card-grid-inner .card-tip{
+    margin-top:3px;padding-top:4px;font-size:8px;line-height:1.35;
+    -webkit-line-clamp:2;line-clamp:2;
+  }
+  .frank-card-grid-inner .card-actions{margin-top:4px;gap:2px;}
+  .frank-card-grid-inner .card-btn{padding:4px 0;font-size:7.5px;}
+  .frank-card-grid-inner .card-tip-label{font-size:7px;}
 }
 .frank-tag{display:inline-block;background:var(--lime);color:var(--forest);font-size:8px;font-weight:500;padding:2px 6px;border-radius:2px;margin-right:7px;font-family:'DM Mono',monospace;text-transform:lowercase;vertical-align:middle;}
 .user-bubble{background:var(--cream-dark);border:1px solid #d8d0bc;border-radius:14px 3px 14px 14px;padding:10px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:80%;margin-left:auto;color:var(--ink-mid);margin-bottom:10px;}
@@ -157,10 +246,28 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .card-btn{padding:5px 0;font-family:'DM Mono',monospace;font-size:8.5px;border:1px solid #ddd8cc;background:transparent;color:var(--ink);cursor:pointer;border-radius:3px;text-align:center;white-space:nowrap;overflow:hidden;width:100%;}
 .card-btn:hover{border-color:var(--forest);color:var(--forest);}
 .card-btn.saved{border-color:var(--forest);color:var(--forest);background:#eaf2ed;}
-.frank-see-more-wrap{margin-top:8px;display:flex;justify-content:flex-start;}
-.frank-see-more-btn{font-family:'DM Mono',monospace;font-size:9px;padding:6px 12px;border:1px solid var(--forest);background:var(--cream);color:var(--forest);border-radius:4px;cursor:pointer;}
+/* see more: last flex item in the row */
+.frank-card-grid-inner > .frank-see-more-wrap{flex:0 0 auto;padding:0 4px 0 12px !important;min-width:88px !important;max-width:118px !important;scroll-snap-align:end;}
+.frank-see-more-wrap{margin:0;padding:0 2px 0 10px;min-width:92px;max-width:110px;scroll-snap-align:end;}
+.frank-see-more-btn{font-family:'DM Mono',monospace;font-size:9px;padding:8px 10px;border:1px solid var(--forest);background:var(--cream);color:var(--forest);border-radius:4px;cursor:pointer;white-space:nowrap;width:100%;max-width:100%;box-sizing:border-box;}
 .frank-see-more-btn:hover{background:#eaf2ed;}
 .frank-see-more-btn:disabled{opacity:0.55;cursor:default;border-color:#c8c0ac;color:var(--ink-ghost);}
+
+@media (pointer:coarse){
+  .frank-card-grid,
+  .frank-card-block{
+    min-width:0;
+    max-width:100%;
+    width:100%;
+  }
+  .frank-card-grid-inner{
+    overflow-x:scroll !important;
+    overflow-y:hidden !important;
+    -webkit-overflow-scrolling:touch;
+    touch-action:pan-x pan-y;
+    scroll-snap-type:none !important;
+  }
+}
 
 /* INPUT */
 .input-wrap{display:flex;gap:10px;align-items:flex-end;padding:8px 0 calc(10px + env(safe-area-inset-bottom, 0px));border-top:1px solid #ddd8cc;background:var(--cream);flex-shrink:0;width:100%;}
@@ -237,10 +344,10 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 /* FULL-SCREEN CARD MODAL */
 #full-card-modal{position:fixed;inset:0;background:var(--cream);z-index:300;display:none;flex-direction:column;overflow:hidden;}
 #full-card-modal.open{display:flex;}
-.fc-header{display:flex;align-items:center;justify-content:space-between;padding:14px 12px 12px;border-bottom:1.5px solid var(--forest);background:var(--cream);flex-shrink:0;}
-.fc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;color:var(--forest);letter-spacing:0.02em;line-height:1;max-width:76%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
-.fc-close{min-width:44px;height:32px;padding:0 10px;background:var(--cream);border:1.5px solid var(--forest);border-radius:6px;color:var(--forest);font-size:10px;font-weight:800;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:0.06em;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
-.fc-close:hover{background:var(--cream-dark);}
+.fc-header{display:flex;align-items:center;gap:10px;padding:14px 12px 12px;border-bottom:1.5px solid var(--forest);background:var(--cream);flex-shrink:0;}
+.fc-name{font-family:'Barlow Condensed',sans-serif;font-weight:800;font-size:22px;text-transform:uppercase;color:var(--forest);letter-spacing:0.02em;line-height:1;flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.fc-back{min-width:44px;height:32px;padding:0 12px;background:var(--cream);border:1.5px solid var(--forest);border-radius:6px;color:var(--forest);font-size:10px;font-weight:800;font-family:'DM Mono',monospace;letter-spacing:0.04em;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;-webkit-tap-highlight-color:transparent;}
+.fc-back:hover{background:var(--cream-dark);}
 .fc-scroll{flex:1;overflow-y:auto;min-height:0;}
 .fc-body{padding:0 0 24px;}
 .fc-section{padding:16px 16px 0;}
@@ -584,7 +691,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 <div id="screen-chat" class="screen active">
   <div class="frank-header">
     <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
-      <div style="display:inline-flex;flex-direction:column;align-items:center;"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">the better list</div></div>
+      <button type="button" class="frank-logo-btn" onclick="frankWordmarkReload()" title="Reload home" aria-label="frAnk home, reload"><div class="frank-logo">fr<span>A</span>nk</div><div class="frank-sub">the better list</div></button>
     </div>
     <div style="display:flex;align-items:center;gap:8px;flex-shrink:0;position:relative;">
       <button type="button" class="header-profile-btn" onclick="showHeaderAccountMenu(event)" aria-label="menu">
@@ -839,8 +946,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 <!-- FULL-SCREEN PLACE CARD MODAL -->
 <div id="full-card-modal">
   <div class="fc-header">
+    <button type="button" class="fc-back" id="fc-close-btn" onclick="closeFullCard()">← back</button>
     <div class="fc-name" id="fc-name-display"></div>
-    <button type="button" class="fc-close" id="fc-close-btn" onclick="closeFullCard()">close</button>
   </div>
   <div class="fc-scroll" id="fc-scroll-body"></div>
 </div>
@@ -1036,8 +1143,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 </div>
 
 <script type='module'>
-import { PLACES, QUOTES, EVENTS } from './dataManager.js';
-import { scoreIntentHintsMatch } from './intentHintsVocab.js';
+import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260330';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260330';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
 function pickHeaderQuote(){
   const nd=new Date();
@@ -2123,7 +2230,9 @@ function syncChatTopCompact(){
   const sc=document.getElementById('screen-chat');
   if(!sc)return;
   const n=[...document.querySelectorAll('#chat-body .msg-group')].filter(g=>g.id!=='typing').length;
-  sc.classList.toggle('chat-top-compact',n>=2);
+  sc.classList.toggle('chat-top-compact',n>=1);
+  const hasPicks=!!document.querySelector('#chat-body .frank-card-grid');
+  sc.classList.toggle('chat-results-mode',hasPicks);
 }
 function scrollChatToGroup(el){
   if(!el)return;
@@ -2451,16 +2560,27 @@ function match(q,catO,moreOpts){
     return freeTextQualifies(row.chipTagScore,row.frankLayer,row.intentScore,row.frankTok,row.reviewTok);
   }).sort((a,b)=>b.score-a.score);
   const picked=pickDiversePicks(ranked, catKey, 4, {categoryBrowse: !!(catO && !qStr.trim()), freeText: !catO && !!qStr.trim(), alreadyShown: alreadyShownSet});
-  recordCatSurface(catKey, picked.map(p=>p.id));
+  if(!moreOpts.skipRecord)recordCatSurface(catKey, picked.map(p=>p.id));
   return picked;
+}
+function frankHasMoreMatches(q,catO,shownIds){
+  const arr=Array.isArray(shownIds)?shownIds:shownIds;
+  const more=match(q,catO,{excludeIds:arr,skipRecord:true});
+  return more.length>0;
 }
 function showCards(places,intro,lbl,ctx){
   ctx=ctx||{};
   const qEnc=encodeURIComponent(ctx.q!=null?String(ctx.q):'');
   const catEnc=ctx.catO!=null?encodeURIComponent(String(ctx.catO)):'';
   const shownIds=places.map(p=>p.id).join(',');
-  const gridInner=places.length?`<div class="frank-card-grid-inner">${places.map(card).join('')}</div>`:'';
-  const blockWrap=places.length?`<div class="frank-card-block" data-frank-q="${qEnc}" data-frank-cat="${catEnc}" data-frank-shown="${shownIds}">${gridInner}<div class="frank-see-more-wrap"><button type="button" class="frank-see-more-btn">see more</button></div></div>`:'';
+  const qRaw=ctx.q!=null?String(ctx.q):'';
+  const catORaw=ctx.catO!=null?ctx.catO:null;
+  const showSeeMore=places.length>0&&frankHasMoreMatches(qRaw,catORaw,places.map(p=>p.id));
+  const outerScrollStyle='display:block;overflow-x:scroll;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain;scroll-padding:0 12px;padding:2px 0 12px;box-sizing:border-box;white-space:nowrap;';
+  const seeWrapStyle='min-width:88px;max-width:118px;padding:0 4px 0 12px;';
+  const seeMoreCell=showSeeMore?`<div class="frank-see-more-wrap" style="${seeWrapStyle}"><button type="button" class="frank-see-more-btn">see more</button></div>`:'';
+  const gridInner=places.length?`<div class="frank-card-grid-inner" style="${outerScrollStyle}">${places.map(card).join('')}${seeMoreCell}</div>`:'';
+  const blockWrap=places.length?`<div class="frank-card-block" data-frank-q="${qEnc}" data-frank-cat="${catEnc}" data-frank-shown="${shownIds}">${gridInner}</div>`:'';
   const body=document.getElementById('chat-body');
   const w=document.createElement('div');
   w.className='msg-group fu';
@@ -2479,21 +2599,25 @@ function frankSeeMore(ev){
   const catEnc=block.dataset.frankCat||'';
   const catO=catEnc?decodeURIComponent(catEnc):null;
   const shown=String(block.dataset.frankShown||'').split(',').filter(Boolean).map(Number);
+  const wrap=btn.closest('.frank-see-more-wrap');
   const more=match(q,catO,{excludeIds:shown});
   if(!more.length){
-    btn.disabled=true;
-    btn.textContent="that's the rest";
+    if(wrap)wrap.remove();
     return;
   }
   const inner=block.querySelector('.frank-card-grid-inner');
-  if(inner)inner.insertAdjacentHTML('beforeend',more.map(card).join(''));
+  const smWrap=block.querySelector('.frank-see-more-wrap');
+  if(inner&&smWrap)smWrap.insertAdjacentHTML('beforebegin',more.map(card).join(''));
+  else if(inner)inner.insertAdjacentHTML('beforeend',more.map(card).join(''));
   block.dataset.frankShown=[...shown,...more.map(p=>p.id)].join(',');
-  if(more.length<4){
-    btn.disabled=true;
-    btn.textContent="that's the rest";
+  const shownNow=String(block.dataset.frankShown||'').split(',').filter(Boolean).map(Number);
+  if(!frankHasMoreMatches(q,catO,shownNow)){
+    if(wrap)wrap.remove();
   }
-  const last=inner&&inner.lastElementChild;
-  if(last)requestAnimationFrame(()=>{try{last.scrollIntoView({behavior:'smooth',block:'nearest',inline:'end'});}catch(e){}});
+  const smAfter=block.querySelector('.frank-see-more-wrap');
+  const scrollEl=inner&&(smAfter&&inner.contains(smAfter)?smAfter.previousElementSibling:inner.lastElementChild);
+  if(scrollEl)requestAnimationFrame(()=>{try{scrollEl.scrollIntoView({behavior:'smooth',block:'nearest',inline:'end'});}catch(e){}});
+  syncChatTopCompact();
 }
 function fireCat(el,cat,lbl){
   document.querySelectorAll('.cat-btn').forEach(b=>b.classList.remove('active'));
@@ -2649,7 +2773,7 @@ function openFullCard(id){
   document.getElementById('fc-name-display').textContent=p.name;
   const fromListPreview=document.getElementById('explore-preview-overlay')?.classList.contains('open');
   const closeBtn=document.getElementById('fc-close-btn');
-  if(closeBtn)closeBtn.textContent=fromListPreview?'return':'close';
+  if(closeBtn)closeBtn.textContent=fromListPreview?'← return':'← back';
   const body=document.getElementById('fc-scroll-body');
   body.innerHTML=`
     <div class="fc-carousel-wrap">
@@ -2731,6 +2855,10 @@ function openFullCard(id){
 
 function closeFullCard(){
   document.getElementById('full-card-modal').classList.remove('open');
+}
+
+function frankWordmarkReload(){
+  location.reload();
 }
 
 // ── PROFILE ───────────────────────────────────────────────────
@@ -3521,9 +3649,6 @@ loadFrankState();
 syncFounderIntakeButton();
 (function(){
   setQuoteBarText();
-  const body=document.getElementById('chat-body');
-  const w=document.createElement('div');
-  w.className='msg-group fu';w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   const rawName=document.getElementById('p-name').value.trim();
   const firstName=rawName?rawName.split(' ')[0].toLowerCase():'';
   const openers=[
@@ -3535,8 +3660,7 @@ syncFounderIntakeButton();
   ];
   const greet=firstName?`hey ${firstName}, `:'hey, ';
   const opener=openers[Math.floor(Math.random()*openers.length)];
-  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">frAnk</div>${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</div></div>`;
-  body.appendChild(w);
+  bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</span></div></div>`,false);
   syncChatTopCompact();
   maybeOpenSharedListFromHash();
 })();
