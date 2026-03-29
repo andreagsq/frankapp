@@ -139,7 +139,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 .frank-bubble-copy{display:block;margin-top:8px;line-height:1.6;color:var(--cream);}
 .frank-bubble>.frank-bubble-copy:first-child{margin-top:0;}
 .frank-says-lead{display:inline;font-weight:700;color:var(--lime);margin-right:0.35em;}
-.frank-bubble-text{display:inline;color:var(--cream);}
+.frank-bubble-text{display:inline;color:#fff;}
 .frank-card-grid{margin-top:10px;width:100%;max-width:100%;min-width:0;}
 .frank-card-grid .place-card{margin-bottom:0;}
 /* Horizontal picks: flex row keeps “see more” as the last column (desktop + touch) */
@@ -1147,8 +1147,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 </div>
 
 <script type='module'>
-import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260405';
-import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260405';
+import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260406';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260406';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
 function pickHeaderQuote(){
   const nd=new Date();
@@ -2745,7 +2745,7 @@ Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quick
       CH=[];
       showCards(match(msg,null),clean,"frAnk",{q:msg,catO:null});
     }else{
-      bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${clean}</span></div></div>`);
+      bubble(`<div class="frank-bubble"><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${clean}</span></div></div>`);
     }
   }catch(e){
     rmTyping();CH=[];
@@ -3664,7 +3664,7 @@ syncFounderIntakeButton();
   ];
   const greet=firstName?`hey ${firstName}, `:'hey, ';
   const opener=openers[Math.floor(Math.random()*openers.length)];
-  bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</span></div></div>`,false);
+  bubble(`<div class="frank-bubble"><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${greet}${opener} <strong>live events</strong> is for shows + tickets. everything else here is places.</span></div></div>`,false);
   syncChatTopCompact();
   maybeOpenSharedListFromHash();
 })();
