@@ -2572,7 +2572,7 @@ function frankHasMoreMatches(q,catO,shownIds){
   const more=match(q,catO,{excludeIds:arr,skipRecord:true});
   return more.length>0;
 }
-function showCards(places,intro,lbl,ctx){
+function showCards(places,intro,_lbl,ctx){
   ctx=ctx||{};
   const qEnc=encodeURIComponent(ctx.q!=null?String(ctx.q):'');
   const catEnc=ctx.catO!=null?encodeURIComponent(String(ctx.catO)):'';
