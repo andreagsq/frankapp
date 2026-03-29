@@ -9,6 +9,6 @@ frAnk docs site (this folder)
     cp ../places.js docs/places.js
     cp ../intentHintsVocab.js docs/intentHintsVocab.js
 
-• If the browser still shows old data: bump the ?v=20260331 string in dataManager.js and in the two import lines at the bottom of index.html (forces new JS fetch).
+• If the browser still shows old data: bump the ?v=20260401 string in dataManager.js and in the two import lines at the bottom of index.html (forces new JS fetch).
 
 • Hard refresh: Cmd+Shift+R (Mac) or clear site data for the host.

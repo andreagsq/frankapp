@@ -137,6 +137,7 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 #chat-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
 .frank-bubble-copy{display:block;margin-top:8px;line-height:1.6;color:var(--cream);}
+.frank-bubble>.frank-bubble-copy:first-child{margin-top:0;}
 .frank-says-lead{display:inline;font-weight:700;color:var(--lime);margin-right:0.35em;}
 .frank-bubble-text{display:inline;color:var(--cream);}
 .frank-card-grid{margin-top:10px;width:100%;max-width:100%;min-width:0;}
@@ -1146,8 +1147,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 </div>
 
 <script type='module'>
-import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260331';
-import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260331';
+import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260401';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260401';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
 function pickHeaderQuote(){
   const nd=new Date();
@@ -2588,8 +2589,7 @@ function showCards(places,intro,lbl,ctx){
   const w=document.createElement('div');
   w.className='msg-group fu';
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
-  const lt=(lbl||"frAnk's picks").replace(/</g,'&lt;');
-  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${intro}</span></div></div>${blockWrap?`<div class="frank-card-grid">${blockWrap}</div>`:''}</div>`;
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${intro}</span></div></div>${blockWrap?`<div class="frank-card-grid">${blockWrap}</div>`:''}</div>`;
   const seeBtn=w.querySelector('.frank-see-more-btn');
   if(seeBtn)seeBtn.addEventListener('click',frankSeeMore);
   body.appendChild(w);scrollChatToGroup(w);syncChatTopCompact();
