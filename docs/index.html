@@ -136,6 +136,9 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 /* CHAT */
 #chat-body{-webkit-overflow-scrolling:touch;overscroll-behavior:contain;}
 .frank-bubble{background:var(--forest);color:var(--cream);border-radius:3px 14px 14px 14px;padding:11px 13px;font-family:'DM Mono',monospace;font-size:11px;line-height:1.6;max-width:88%;margin-bottom:0;}
+.frank-bubble-copy{display:block;margin-top:8px;line-height:1.6;color:var(--cream);}
+.frank-says-lead{display:inline;font-weight:700;color:var(--lime);margin-right:0.35em;}
+.frank-bubble-text{display:inline;color:var(--cream);}
 .frank-card-grid{margin-top:10px;width:100%;max-width:100%;min-width:0;}
 .frank-card-grid .place-card{margin-bottom:0;}
 /* Horizontal picks: flex row keeps “see more” as the last column (desktop + touch) */
@@ -1143,8 +1146,8 @@ html,body{height:100%;min-height:100dvh;overflow:hidden;background:#f5f0e8;font-
 </div>
 
 <script type='module'>
-import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260330';
-import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260330';
+import { PLACES, QUOTES, EVENTS } from './dataManager.js?v=20260331';
+import { scoreIntentHintsMatch } from './intentHintsVocab.js?v=20260331';
 const HQ={'1-1':{q:"happy new year. go eat something good.",attr:"frAnk on january"},'2-14':{q:"valentine's day is just a reservation you should have made three weeks ago.",attr:"frAnk on planning"},'5-11':{q:"if you're taking your mom somewhere mediocre today she will remember it.",attr:"frAnk on mother's day"},'6-15':{q:"dad doesn't want brunch. cold beer, good parking.",attr:"frAnk on father's day"},'7-4':{q:"the best fireworks are the ones you watch from a rooftop bar.",attr:"frAnk on the fourth"},'10-31':{q:"dress up. go out. eat something you can't pronounce.",attr:"frAnk on halloween"},'11-27':{q:"the best meal of the year should not be eaten in a hurry.",attr:"frAnk on thanksgiving"},'12-25':{q:"merry christmas. the best gift is knowing a place that's actually open today.",attr:"frAnk on the holidays"}};
 function pickHeaderQuote(){
   const nd=new Date();
@@ -2576,7 +2579,7 @@ function showCards(places,intro,lbl,ctx){
   const qRaw=ctx.q!=null?String(ctx.q):'';
   const catORaw=ctx.catO!=null?ctx.catO:null;
   const showSeeMore=places.length>0&&frankHasMoreMatches(qRaw,catORaw,places.map(p=>p.id));
-  const outerScrollStyle='display:block;overflow-x:scroll;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain;scroll-padding:0 12px;padding:2px 0 12px;box-sizing:border-box;white-space:nowrap;';
+  const outerScrollStyle='overflow-x:auto;overflow-y:hidden;-webkit-overflow-scrolling:touch;touch-action:pan-x pan-y;width:100%;max-width:100%;min-width:0;overscroll-behavior-x:contain;scroll-padding:0 12px;padding:2px 0 12px;box-sizing:border-box;';
   const seeWrapStyle='min-width:88px;max-width:118px;padding:0 4px 0 12px;';
   const seeMoreCell=showSeeMore?`<div class="frank-see-more-wrap" style="${seeWrapStyle}"><button type="button" class="frank-see-more-btn">see more</button></div>`:'';
   const gridInner=places.length?`<div class="frank-card-grid-inner" style="${outerScrollStyle}">${places.map(card).join('')}${seeMoreCell}</div>`:'';
@@ -2586,7 +2589,7 @@ function showCards(places,intro,lbl,ctx){
   w.className='msg-group fu';
   w.style.cssText='display:flex;gap:8px;align-items:flex-start;';
   const lt=(lbl||"frAnk's picks").replace(/</g,'&lt;');
-  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div>${intro}</div>${blockWrap?`<div class="frank-card-grid">${blockWrap}</div>`:''}</div>`;
+  w.innerHTML=`${avatar()}<div style="flex:1;min-width:0;"><div class="frank-bubble"><div class="frank-tag">${lt}</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${intro}</span></div></div>${blockWrap?`<div class="frank-card-grid">${blockWrap}</div>`:''}</div>`;
   const seeBtn=w.querySelector('.frank-see-more-btn');
   if(seeBtn)seeBtn.addEventListener('click',frankSeeMore);
   body.appendChild(w);scrollChatToGroup(w);syncChatTopCompact();
@@ -2742,7 +2745,7 @@ Places you know: Knuckle Sandwich, Lou's Barton Springs, Hillside Farmacy, Quick
       CH=[];
       showCards(match(msg,null),clean,"frAnk",{q:msg,catO:null});
     }else{
-      bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div>${clean}</div>`);
+      bubble(`<div class="frank-bubble"><div class="frank-tag">frAnk</div><div class="frank-bubble-copy"><span class="frank-says-lead">frAnk says:</span><span class="frank-bubble-text">${clean}</span></div></div>`);
     }
   }catch(e){
     rmTyping();CH=[];
